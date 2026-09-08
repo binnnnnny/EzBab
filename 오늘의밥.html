@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 밥</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --bg: #FFF8F3;
+    --surface: #FFFFFF;
+    --ink: #262019;
+    --ink-2: #7A6F63;
+    --ink-3: #ABA095;
+    --line: #F0E4D8;
+    --primary: #FF5A36;
+    --primary-strong: #E8431F;
+    --primary-tint: #FFEBE3;
+    --accent: #262019;
+    --accent-tint: #FFF1E8;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 16px rgba(120, 80, 40, 0.07);
+    --shadow-strong: 0 6px 20px rgba(255, 90, 54, 0.28);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 4px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--ink);
+  }
+
+  .brand .dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: var(--primary-tint);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+  }
+
+  .brand small {
+    font-weight: 500;
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 28px 4px 8px;
+  }
+
+  .hero h1 {
+    font-size: 27px;
+    line-height: 1.42;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.4px;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--ink-2);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* Picker card */
+  .picker-card {
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 28px 22px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+
+  .picker-display {
+    font-size: 26px;
+    font-weight: 700;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--ink);
+    transition: transform 0.08s ease;
+  }
+
+  .picker-display.rolling {
+    color: var(--primary);
+  }
+
+  .picker-display.landed {
+    color: var(--accent);
+    animation: pop 0.42s ease;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.85); opacity: 0.3; }
+    60% { transform: scale(1.08); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .picker-sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ink-3);
+    min-height: 18px;
+  }
+
+  .picker-controls {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 18px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .picker-controls label {
+    font-size: 13px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .picker-controls input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+  }
+
+  .pick-btn {
+    margin-top: 14px;
+    width: 100%;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 16px 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: var(--shadow-strong);
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+
+  .pick-btn:active { transform: scale(0.98); }
+  .pick-btn:hover { background: var(--primary-strong); }
+
+  .confirm-btn {
+    margin-top: 10px;
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: none;
+  }
+
+  .confirm-btn:active { transform: scale(0.98); }
+
+  /* Week strip */
+  .week-strip {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .week-day {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 12px 6px;
+    text-align: center;
+    border: 1px solid var(--line);
+  }
+
+  .week-day.today {
+    border-color: var(--primary);
+    background: var(--primary-tint);
+  }
+
+  .week-day .label {
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+
+  .week-day .value {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    word-break: keep-all;
+    min-height: 18px;
+  }
+
+  .week-day .value.empty {
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  /* Curation section */
+  .curation {
+    margin-top: 44px;
+  }
+
+  .curation-header h2 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  .curation-header p {
+    font-size: 13px;
+    color: var(--ink-3);
+    margin: 0 0 16px;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-chip b { color: var(--ink); font-weight: 700; }
+
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .search-row input[type="text"] {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+  }
+
+  .search-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .search-row select {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 11px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink-2);
+  }
+
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* Photo gallery (오늘의 밥 feed) */
+  .gallery-section {
+    margin-top: 36px;
+  }
+
+  .photo-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .photo-gallery::-webkit-scrollbar { display: none; }
+
+  .photo-card {
+    flex: 0 0 132px;
+    scroll-snap-align: start;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .photo-card img {
+    width: 132px;
+    height: 132px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .photo-card-caption {
+    padding: 8px 10px 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .photo-card-caption span.cat-emoji {
+    font-size: 13px;
+  }
+
+  /* Grid of restaurant cards */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s ease;
+    overflow: hidden;
+  }
+
+  .card.excluded {
+    opacity: 0.5;
+  }
+
+  .card-photo-area {
+    width: calc(100% + 32px);
+    margin: -16px -16px 0;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    overflow: hidden;
+    background: var(--primary-tint);
+  }
+
+  .card-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-photo-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .photo-upload-label {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: var(--radius-sm);
+    background: rgba(30, 25, 22, 0.78);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+  }
+
+  .photo-upload-label:hover { background: rgba(30, 25, 22, 0.9); }
+  .photo-upload-label.is-uploading { opacity: 0.7; cursor: wait; }
+  .photo-upload-label input { display: none; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--primary-tint);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .card-name {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .card-address {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    margin-top: -6px;
+  }
+
+  .card-review {
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .card-review.missing {
+    color: var(--ink-3);
+    font-style: italic;
+  }
+
+  .comment-section {
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 90px;
+    overflow-y: auto;
+    margin-bottom: 6px;
+  }
+
+  .comment-item {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  .comment-item b {
+    color: var(--ink);
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  .comment-empty {
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+
+  .comment-form {
+    display: flex;
+    gap: 4px;
+  }
+
+  .comment-form input[type="text"].name-input {
+    width: 52px;
+    flex-shrink: 0;
+  }
+
+  .comment-form input[type="text"] {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-size: 11.5px;
+    font-family: inherit;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  .comment-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .comment-submit {
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
+  .like-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .like-btn:active { transform: scale(0.96); }
+
+  .like-btn.liked {
+    background: var(--primary-tint);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .like-btn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .pool-toggle {
+    font-size: 11.5px;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .pool-toggle input {
+    accent-color: var(--primary);
+    width: 14px;
+    height: 14px;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0;
+    color: var(--ink-3);
+    font-size: 14px;
+  }
+
+  footer {
+    margin-top: 50px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.8;
+  }
+
+  footer button.reset-link {
+    background: none;
+    border: none;
+    color: var(--ink-3);
+    text-decoration: underline;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="brand"><span class="dot">🍚</span>오늘의 밥</div>
+  </header>
+
+  <section class="hero">
+    <h1>오늘 점심,<br>뭐 먹을지 골라볼까요?</h1>
+    <p>우리 팀이 직접 가보고 남긴 기록으로 만든 점심 큐레이션이에요.</p>
+  </section>
+
+  <section class="picker-card">
+    <div class="picker-display" id="pickerDisplay"><span id="pickerEmoji"></span><span id="pickerText">눌러서 뽑기</span></div>
+    <div class="picker-sub" id="pickerSub">&nbsp;</div>
+    <div class="picker-controls">
+      <label><input type="checkbox" id="excludeTodayToggle" checked> 이번주에 먹은 곳 제외</label>
+    </div>
+    <button class="pick-btn" id="pickBtn">오늘 뭐 먹지?</button>
+    <button class="confirm-btn" id="confirmBtn">이걸로 확정!</button>
+  </section>
+
+  <div class="week-strip" id="weekStrip"></div>
+
+  <section class="gallery-section">
+    <div class="curation-header">
+      <h2>오늘의 추천 점심, 사진으로 구경해보세요 🧐</h2>
+      <p>우리 팀이 실제로 찍고 남긴 점심 기록들이에요</p>
+    </div>
+    <div class="photo-gallery" id="photoGallery"></div>
+  </section>
+
+  <section class="curation">
+    <div class="curation-header">
+      <h2>오늘의 점심 큐레이션</h2>
+      <p>도보 10분 이내 · 우리 팀이 채워가는 리스트</p>
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="filter-bar">
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="메뉴 이름으로 찾기">
+        <select id="sortSelect">
+          <option value="default">기본 순서</option>
+          <option value="likes">좋아요 많은 순</option>
+          <option value="name">가나다 순</option>
+        </select>
+      </div>
+      <div class="chip-row" id="categoryChips"></div>
+    </div>
+
+    <div class="grid" id="restaurantGrid"></div>
+  </section>
+
+  <footer>
+    맛집 목록과 좋아요·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
+  </footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://hgqqlxuuifkbogmizsjc.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_z-aaM1TaFemU2DLR-_OfEA_AMRlQXDU';
+  window.todayBapDb = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+</script>
+
+<script>
+(function () {
+  const MENU_KEY = 'ezsecu-lunch-menus-v3';
+  const HISTORY_KEY = 'ezsecu-lunch-history-v1';
+  const SEED_FLAG_KEY = 'ezsecu-lunch-seed-2026-09-07';
+  const CLIENT_ID_KEY = 'ezbab-client-id';
+  const RESTAURANT_IMAGE_BUCKET = 'restaurant-images';
+  const MAX_SOURCE_IMAGE_BYTES = 10 * 1024 * 1024;
+  const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+  const CATEGORY_EMOJI = {
+    '한식': '🍚',
+    '중식': '🥟',
+    '베트남음식': '🍜',
+    '피자·양식': '🍕',
+    '술집': '🍻',
+    '기타': '🍽️',
+    '도시락': '🍱',
+    '분식': '🍙',
+    '마라탕': '🌶️',
+    '일식': '🍣',
+    '태국음식': '🍛',
+  };
+
+
+  let menus = [];
+  let history = [];
+  let activeCategory = '전체';
+  let searchTerm = '';
+  let sortMode = 'default';
+  let pendingChoice = null;
+
+  function getClientId() {
+    let clientId = localStorage.getItem(CLIENT_ID_KEY);
+    if (!clientId) {
+      clientId = crypto.randomUUID();
+      localStorage.setItem(CLIENT_ID_KEY, clientId);
+    }
+    return clientId;
+  }
+
+  const clientId = getClientId();
+
+  const grid = document.getElementById('restaurantGrid');
+  const categoryChipsEl = document.getElementById('categoryChips');
+  const searchInput = document.getElementById('searchInput');
+  const sortSelect = document.getElementById('sortSelect');
+  const statRow = document.getElementById('statRow');
+  const weekStrip = document.getElementById('weekStrip');
+  const pickerEmoji = document.getElementById('pickerEmoji');
+  const pickerText = document.getElementById('pickerText');
+  const pickerSub = document.getElementById('pickerSub');
+  const pickBtn = document.getElementById('pickBtn');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const excludeTodayToggle = document.getElementById('excludeTodayToggle');
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function restaurantPhotoUrl(photoValue) {
+    if (!photoValue) return '';
+    if (/^(https?:|data:|blob:)/i.test(photoValue)) return photoValue;
+    return window.todayBapDb.storage
+      .from(RESTAURANT_IMAGE_BUCKET)
+      .getPublicUrl(photoValue).data.publicUrl;
+  }
+
+  async function compressRestaurantPhoto(file) {
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      throw new Error('JPG, PNG, WebP 형식의 사진만 등록할 수 있어요.');
+    }
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+      throw new Error('원본 사진은 10MB 이하만 선택할 수 있어요.');
+    }
+
+    const bitmap = await createImageBitmap(file);
+    const maxSide = 1600;
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d');
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
+    if (!blob) throw new Error('사진을 압축하지 못했어요. 다른 사진을 선택해주세요.');
+    if (blob.size > MAX_UPLOAD_IMAGE_BYTES) {
+      throw new Error('압축 후 사진이 5MB를 넘어요. 더 작은 사진을 선택해주세요.');
+    }
+    return blob;
+  }
+
+  async function uploadRestaurantPhoto(input, menu) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    const label = input.closest('.photo-upload-label');
+    const labelText = label.querySelector('[data-role="photo-upload-label"]');
+    input.disabled = true;
+    label.classList.add('is-uploading');
+    labelText.textContent = '업로드 중…';
+
+    try {
+      const compressedPhoto = await compressRestaurantPhoto(file);
+      const imagePath = `restaurants/${menu.id}/${crypto.randomUUID()}.webp`;
+      const { error: uploadError } = await window.todayBapDb.storage
+        .from(RESTAURANT_IMAGE_BUCKET)
+        .upload(imagePath, compressedPhoto, {
+          contentType: 'image/webp',
+          cacheControl: '3600',
+          upsert: false
+        });
+      if (uploadError) throw uploadError;
+
+      const { error: updateError } = await window.todayBapDb
+        .from('restaurants')
+        .update({ photo_url: imagePath })
+        .eq('id', menu.id);
+      if (updateError) throw updateError;
+
+      await loadMenus();
+      renderPhotoGallery();
+      renderGrid();
+    } catch (error) {
+      console.error('대표 사진 등록 실패:', error);
+      alert(error.message || '대표 사진 등록에 실패했어요.');
+      input.disabled = false;
+      label.classList.remove('is-uploading');
+      labelText.textContent = menu.photo ? '사진 변경' : '대표 사진 등록';
+      input.value = '';
+    }
+  }
+
+  async function loadMenus() {
+    const [restaurantsResult, likesResult, reviewsResult] = await Promise.all([
+      window.todayBapDb
+        .from('restaurants')
+        .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
+        .order('created_at', { ascending: true }),
+      window.todayBapDb
+        .from('restaurant_likes')
+        .select('restaurant_id, client_id'),
+      window.todayBapDb
+        .from('reviews')
+        .select('id, restaurant_id, author_name, content, image_path, created_at')
+        .order('created_at', { ascending: true })
+    ]);
+
+    if (restaurantsResult.error) {
+      console.error('Supabase 맛집 조회 실패:', restaurantsResult.error);
+      menus = [];
+      pickerSub.textContent = 'DB 연결 실패 · 개발자 콘솔을 확인해주세요';
+      return;
+    }
+
+    if (likesResult.error) {
+      console.error('Supabase 좋아요 조회 실패:', likesResult.error);
+    }
+    if (reviewsResult.error) {
+      console.error('Supabase 리뷰 조회 실패:', reviewsResult.error);
+    }
+
+    const likes = likesResult.data || [];
+    const likeCountByRestaurant = new Map();
+    const likedRestaurantIds = new Set();
+    likes.forEach(like => {
+      likeCountByRestaurant.set(
+        like.restaurant_id,
+        (likeCountByRestaurant.get(like.restaurant_id) || 0) + 1
+      );
+      if (like.client_id === clientId) {
+        likedRestaurantIds.add(like.restaurant_id);
+      }
+    });
+
+    const reviewsByRestaurant = new Map();
+    (reviewsResult.data || []).forEach(review => {
+      const restaurantReviews = reviewsByRestaurant.get(review.restaurant_id) || [];
+      restaurantReviews.push({
+        id: review.id,
+        author: review.author_name || '익명',
+        text: review.content,
+        imagePath: review.image_path || '',
+        date: review.created_at
+      });
+      reviewsByRestaurant.set(review.restaurant_id, restaurantReviews);
+    });
+
+    let localMenus = [];
+    try {
+      localMenus = JSON.parse(localStorage.getItem(MENU_KEY) || '[]');
+    } catch (e) {
+      console.warn('개인 뽑기 설정을 읽지 못했습니다.', e);
+    }
+    const localMenuById = new Map(localMenus.map(m => [m.id, m]));
+
+    menus = (restaurantsResult.data || []).map(m => {
+      const local = localMenuById.get(m.id) || {};
+      return {
+        id: m.id,
+        name: m.name,
+        category: m.category,
+        address: m.address || '',
+        review: m.description || '',
+        photo: restaurantPhotoUrl(m.photo_url),
+        photoPath: m.photo_url || '',
+        createdBy: m.created_by || '',
+        excluded: Boolean(local.excluded),
+        likes: likeCountByRestaurant.get(m.id) || 0,
+        liked: likedRestaurantIds.has(m.id),
+        comments: reviewsByRestaurant.get(m.id) || []
+      };
+    });
+
+    const failedParts = [];
+    if (likesResult.error) failedParts.push('좋아요');
+    if (reviewsResult.error) failedParts.push('리뷰');
+    pickerSub.textContent = failedParts.length
+      ? `${failedParts.join('·')} 조회 실패 · RLS 정책을 확인해주세요`
+      : `Supabase 연결 완료 · ${menus.length}곳 불러옴`;
+    console.info('Supabase 연결 성공:', menus.length, '곳');
+  }
+
+  async function saveMenus() {
+    try {
+      localStorage.setItem(MENU_KEY, JSON.stringify(menus));
+    } catch (e) { console.error('임시 로컬 메뉴 상태 저장 실패', e); }
+  }
+
+  async function loadHistory() {
+    try {
+      history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    } catch (e) {
+      history = [];
+    }
+  }
+
+  async function saveHistory() {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    } catch (e) { console.error('로컬 점심 기록 저장 실패', e); }
+  }
+
+  async function seedYesterdayIfNeeded() {
+    if (localStorage.getItem(SEED_FLAG_KEY)) return;
+    history.push({ date: '2026-09-07', name: '삼식이감자탕뼈해장국' });
+    await saveHistory();
+    localStorage.setItem(SEED_FLAG_KEY, '1');
+  }
+
+  function todayStr(offsetDays = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function getMonday() {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  }
+
+  function thisWeekDates() {
+    const monday = getMonday();
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      out.push(d.toISOString().slice(0, 10));
+    }
+    return out;
+  }
+
+  function renderWeekStrip() {
+    const dates = thisWeekDates();
+    const labels = ['월', '화', '수', '목', '금'];
+    const today = todayStr();
+    weekStrip.innerHTML = '';
+    dates.forEach((date, i) => {
+      const entry = [...history].reverse().find(h => h.date === date);
+      const el = document.createElement('div');
+      el.className = 'week-day' + (date === today ? ' today' : '');
+      el.innerHTML = `
+        <div class="label">${labels[i]}</div>
+        <div class="value ${entry ? '' : 'empty'}">${entry ? entry.name : '미정'}</div>
+      `;
+      weekStrip.appendChild(el);
+    });
+  }
+
+  function renderStats() {
+    const total = menus.length;
+    statRow.innerHTML = `
+      <div class="stat-chip">등록된 메뉴 <b>${total}곳</b></div>
+    `;
+  }
+
+  function renderCategoryChips() {
+    const cats = ['전체', ...new Set(menus.map(m => m.category))];
+    categoryChipsEl.innerHTML = '';
+    cats.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'chip' + (cat === activeCategory ? ' active' : '');
+      btn.textContent = cat === '전체' ? '전체' : `${CATEGORY_EMOJI[cat] || ''} ${cat}`;
+      btn.addEventListener('click', () => {
+        activeCategory = cat;
+        renderCategoryChips();
+        renderGrid();
+      });
+      categoryChipsEl.appendChild(btn);
+    });
+  }
+
+  function filteredSortedMenus() {
+    let list = menus.filter(m => {
+      if (activeCategory !== '전체' && m.category !== activeCategory) return false;
+      if (searchTerm && !m.name.includes(searchTerm)) return false;
+      return true;
+    });
+    if (sortMode === 'likes') list = [...list].sort((a, b) => b.likes - a.likes);
+    if (sortMode === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    return list;
+  }
+
+  function renderPhotoGallery() {
+    const gallery = document.getElementById('photoGallery');
+    if (!gallery) return;
+    const withPhotos = menus.filter(m => m.photo);
+    if (withPhotos.length === 0) {
+      gallery.innerHTML = '<div class="empty-state">아직 등록된 사진이 없어요.</div>';
+      return;
+    }
+    const shuffled = [...withPhotos].sort(() => Math.random() - 0.5);
+    const picked = shuffled.slice(0, 8);
+    gallery.innerHTML = picked.map(m => `
+      <div class="photo-card">
+        <img src="${m.photo}" alt="${m.name}" loading="lazy">
+        <div class="photo-card-caption"><span class="cat-emoji">${CATEGORY_EMOJI[m.category] || ''}</span>${m.name}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderGrid() {
+    const list = filteredSortedMenus();
+    grid.innerHTML = '';
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="empty-state">조건에 맞는 곳이 없어요. 필터를 바꿔보세요.</div>';
+      return;
+    }
+    list.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'card' + (m.excluded ? ' excluded' : '');
+      const commentsHtml = (m.comments && m.comments.length)
+        ? m.comments.map(c => `<div class="comment-item"><b>${escapeHtml(c.author || '익명')}</b>${escapeHtml(c.text)}</div>`).join('')
+        : '<div class="comment-empty">아직 리뷰가 없어요. 먼저 남겨보세요.</div>';
+      card.innerHTML = `
+        <div class="card-photo-area">
+          ${m.photo
+            ? `<img class="card-photo" src="${m.photo}" alt="${m.name}" loading="lazy">`
+            : '<div class="card-photo-empty">등록된 대표 사진이 없어요</div>'}
+          <label class="photo-upload-label">
+            📷 <span data-role="photo-upload-label">${m.photo ? '사진 변경' : '대표 사진 등록'}</span>
+            <input type="file" data-id="${m.id}" data-action="photo-upload" accept="image/jpeg,image/png,image/webp" aria-label="${m.name} 대표 사진 ${m.photo ? '변경' : '등록'}">
+          </label>
+        </div>
+        <div class="card-top">
+          <span class="tag">${CATEGORY_EMOJI[m.category] || ''} ${m.category}</span>
+        </div>
+        <h3 class="card-name">${m.name}</h3>
+        ${m.address ? `<div class="card-address">${m.address}</div>` : ''}
+        <p class="card-review${m.review ? '' : ' missing'}">${m.review || '아직 정리된 정보가 없어요.'}</p>
+        <div class="comment-section">
+          <div class="comment-list">${commentsHtml}</div>
+          <div class="comment-form">
+            <input type="text" class="name-input" data-id="${m.id}" data-role="comment-author" placeholder="이름">
+            <input type="text" data-id="${m.id}" data-role="comment-text" placeholder="리뷰 남기기">
+            <button class="comment-submit" data-id="${m.id}" data-action="comment-submit">등록</button>
+          </div>
+        </div>
+        <div class="card-bottom">
+          <button class="like-btn${m.liked ? ' liked' : ''}" data-id="${m.id}" data-action="like" aria-pressed="${m.liked ? 'true' : 'false'}">👍 <span>${m.likes}</span></button>
+          <label class="pool-toggle">
+            <input type="checkbox" data-id="${m.id}" data-action="pool" ${m.excluded ? '' : 'checked'}>
+            뽑기 후보
+          </label>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  grid.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const m = menus.find(x => x.id === id);
+    if (!m) return;
+    if (btn.dataset.action === 'like') {
+      btn.disabled = true;
+      let error;
+
+      if (m.liked) {
+        ({ error } = await window.todayBapDb
+          .from('restaurant_likes')
+          .delete()
+          .eq('restaurant_id', m.id)
+          .eq('client_id', clientId));
+      } else {
+        ({ error } = await window.todayBapDb
+          .from('restaurant_likes')
+          .insert({
+            restaurant_id: m.id,
+            client_id: clientId
+          }));
+      }
+
+      if (error) {
+        console.error(m.liked ? '좋아요 취소 실패:' : '좋아요 등록 실패:', error);
+        alert(m.liked ? '좋아요 취소에 실패했어요.' : '좋아요 등록에 실패했어요.');
+        btn.disabled = false;
+        return;
+      }
+
+      await loadMenus();
+      renderGrid();
+    }
+    if (btn.dataset.action === 'comment-submit') {
+      const card = btn.closest('.card');
+      const authorInput = card.querySelector('[data-role="comment-author"]');
+      const textInput = card.querySelector('[data-role="comment-text"]');
+      const text = textInput.value.trim();
+      if (!text) { textInput.focus(); return; }
+
+      btn.disabled = true;
+      const { error } = await window.todayBapDb
+        .from('reviews')
+        .insert({
+          restaurant_id: m.id,
+          author_name: authorInput.value.trim() || '익명',
+          content: text,
+          image_path: null,
+          created_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('리뷰 등록 실패:', error);
+        alert('리뷰 등록에 실패했어요.');
+        btn.disabled = false;
+        return;
+      }
+
+      await loadMenus();
+      renderGrid();
+    }
+  });
+
+  grid.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.dataset.role === 'comment-text') {
+      const submitBtn = e.target.closest('.card').querySelector('[data-action="comment-submit"]');
+      submitBtn.click();
+    }
+  });
+
+  grid.addEventListener('change', async (e) => {
+    const photoInput = e.target.closest('[data-action="photo-upload"]');
+    if (photoInput) {
+      const menu = menus.find(x => x.id === photoInput.dataset.id);
+      if (menu) await uploadRestaurantPhoto(photoInput, menu);
+      return;
+    }
+
+    const input = e.target.closest('[data-action="pool"]');
+    if (!input) return;
+    const m = menus.find(x => x.id === input.dataset.id);
+    if (!m) return;
+    m.excluded = !input.checked;
+    await saveMenus();
+    renderGrid();
+  });
+
+  searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value.trim();
+    renderGrid();
+  });
+
+  sortSelect.addEventListener('change', (e) => {
+    sortMode = e.target.value;
+    renderGrid();
+  });
+
+  let rolling = false;
+  pickBtn.addEventListener('click', async () => {
+    if (rolling) return;
+    let pool = menus.filter(m => !m.excluded);
+    if (excludeTodayToggle.checked) {
+      const thisWeekNames = new Set(
+        history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name)
+      );
+      const remaining = pool.filter(m => !thisWeekNames.has(m.name));
+      if (remaining.length > 0) pool = remaining;
+    }
+    if (pool.length === 0) {
+      pickerEmoji.textContent = '';
+      pickerText.textContent = '후보가 없어요';
+      pickerSub.textContent = '필터를 해제해보세요';
+      return;
+    }
+
+    rolling = true;
+    pendingChoice = null;
+    confirmBtn.style.display = 'none';
+    pickerText.classList.remove('landed');
+    pickerText.parentElement.classList.remove('landed');
+    document.getElementById('pickerDisplay').classList.remove('landed');
+    document.getElementById('pickerDisplay').classList.add('rolling');
+    pickerSub.textContent = '';
+
+    const rounds = 16;
+    let i = 0;
+    const tick = () => {
+      const rand = pool[Math.floor(Math.random() * pool.length)];
+      pickerEmoji.textContent = CATEGORY_EMOJI[rand.category] || '';
+      pickerText.textContent = rand.name;
+      i++;
+      if (i < rounds) {
+        const delay = 60 + i * 14;
+        setTimeout(tick, delay);
+      } else {
+        finish();
+      }
+    };
+    tick();
+
+    function finish() {
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      pickerEmoji.textContent = CATEGORY_EMOJI[chosen.category] || '';
+      pickerText.textContent = chosen.name;
+      document.getElementById('pickerDisplay').classList.remove('rolling');
+      document.getElementById('pickerDisplay').classList.add('landed');
+      pickerSub.textContent = `${chosen.category} · 확정 버튼을 눌러야 기록돼요`;
+      pendingChoice = chosen;
+      confirmBtn.style.display = 'block';
+      rolling = false;
+    }
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    if (!pendingChoice) return;
+    history.push({ date: todayStr(), name: pendingChoice.name });
+    await saveHistory();
+    renderWeekStrip();
+    renderStats();
+    pickerSub.textContent = `${pendingChoice.category} · 오늘의 선택으로 등록했어요`;
+    confirmBtn.style.display = 'none';
+    pendingChoice = null;
+  });
+
+  async function init() {
+    pickerText.textContent = '불러오는 중…';
+    await Promise.all([loadMenus(), loadHistory()]);
+    await seedYesterdayIfNeeded();
+    pickerText.textContent = '눌러서 뽑기';
+    renderCategoryChips();
+    renderGrid();
+    renderPhotoGallery();
+    renderStats();
+    renderWeekStrip();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
