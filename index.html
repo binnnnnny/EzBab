@@ -604,7 +604,24 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    gap: 8px;
   }
+
+  .card-edit-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .card-edit-btn:hover { border-color: var(--primary); color: var(--primary); }
 
   .tag {
     display: inline-block;
@@ -854,7 +871,7 @@
     <div class="restaurant-form-header">
       <div>
         <h2 id="restaurantDialogTitle">새 식당 등록</h2>
-        <p>우리 팀이 함께 볼 점심 후보를 추가해요.</p>
+        <p id="restaurantDialogSubtitle">우리 팀이 함께 볼 점심 후보를 추가해요.</p>
       </div>
       <button class="dialog-close-btn" id="closeRestaurantDialog" type="button" aria-label="등록 창 닫기">×</button>
     </div>
@@ -946,6 +963,7 @@
   let searchTerm = '';
   let sortMode = 'default';
   let pendingChoice = null;
+  let editingId = null;
 
   function getClientId() {
     let clientId = localStorage.getItem(CLIENT_ID_KEY);
@@ -974,6 +992,33 @@
   const restaurantForm = document.getElementById('restaurantForm');
   const restaurantFormStatus = document.getElementById('restaurantFormStatus');
   const restaurantSubmitBtn = document.getElementById('restaurantSubmitBtn');
+  const restaurantDialogTitle = document.getElementById('restaurantDialogTitle');
+  const restaurantDialogSubtitle = document.getElementById('restaurantDialogSubtitle');
+
+  function resetRestaurantDialogToAddMode() {
+    editingId = null;
+    restaurantDialogTitle.textContent = '새 식당 등록';
+    restaurantDialogSubtitle.textContent = '우리 팀이 함께 볼 점심 후보를 추가해요.';
+    restaurantSubmitBtn.textContent = '등록하기';
+    document.getElementById('restaurantPhoto').closest('.restaurant-field').style.display = '';
+  }
+
+  function openEditDialog(menu) {
+    editingId = menu.id;
+    restaurantForm.reset();
+    restaurantFormStatus.textContent = '';
+    restaurantDialogTitle.textContent = '식당 정보 수정';
+    restaurantDialogSubtitle.textContent = `${menu.name} 정보를 수정해요. 대표 사진은 카드에서 바로 바꿀 수 있어요.`;
+    restaurantSubmitBtn.textContent = '수정하기';
+    document.getElementById('restaurantName').value = menu.name || '';
+    document.getElementById('restaurantCategory').value = menu.category || '';
+    document.getElementById('restaurantAddress').value = menu.address || '';
+    document.getElementById('restaurantDescription').value = menu.review || '';
+    // 대표 사진은 카드의 '사진 변경' 버튼으로 별도 관리하므로 수정 창에서는 숨김
+    document.getElementById('restaurantPhoto').closest('.restaurant-field').style.display = 'none';
+    restaurantDialog.showModal();
+    document.getElementById('restaurantName').focus();
+  }
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -1291,6 +1336,7 @@
         </div>
         <div class="card-top">
           <span class="tag">${CATEGORY_EMOJI[m.category] || ''} ${m.category}</span>
+          <button class="card-edit-btn" data-id="${m.id}" data-action="edit" type="button">✏️ 수정</button>
         </div>
         <h3 class="card-name">${m.name}</h3>
         ${m.address ? `<div class="card-address">${m.address}</div>` : ''}
@@ -1321,6 +1367,10 @@
     const id = btn.dataset.id;
     const m = menus.find(x => x.id === id);
     if (!m) return;
+    if (btn.dataset.action === 'edit') {
+      openEditDialog(m);
+      return;
+    }
     if (btn.dataset.action === 'like') {
       btn.disabled = true;
       let error;
@@ -1405,6 +1455,7 @@
   });
 
   document.getElementById('openRestaurantDialog').addEventListener('click', () => {
+    resetRestaurantDialogToAddMode();
     restaurantForm.reset();
     restaurantFormStatus.textContent = '';
     restaurantDialog.showModal();
@@ -1416,11 +1467,22 @@
   restaurantDialog.addEventListener('click', (event) => {
     if (event.target === restaurantDialog) restaurantDialog.close();
   });
+  restaurantDialog.addEventListener('close', () => {
+    resetRestaurantDialogToAddMode();
+  });
 
   restaurantForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!restaurantForm.reportValidity()) return;
 
+    if (editingId) {
+      await submitRestaurantEdit(editingId);
+    } else {
+      await submitNewRestaurant();
+    }
+  });
+
+  async function submitNewRestaurant() {
     const formData = new FormData(restaurantForm);
     const photoFile = formData.get('photo');
     let compressedPhoto = null;
@@ -1492,7 +1554,43 @@
     } finally {
       restaurantSubmitBtn.disabled = false;
     }
-  });
+  }
+
+  async function submitRestaurantEdit(id) {
+    const formData = new FormData(restaurantForm);
+
+    restaurantSubmitBtn.disabled = true;
+    restaurantFormStatus.textContent = '수정 내용을 저장하는 중…';
+
+    try {
+      const { error: updateError } = await window.todayBapDb
+        .from('restaurants')
+        .update({
+          name: String(formData.get('name') || '').trim(),
+          category: String(formData.get('category') || '').trim(),
+          address: String(formData.get('address') || '').trim() || null,
+          description: String(formData.get('description') || '').trim() || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      await loadMenus();
+      renderCategoryChips();
+      renderPhotoGallery();
+      renderGrid();
+      renderStats();
+      restaurantDialog.close();
+      restaurantForm.reset();
+      alert('식당 정보를 수정했어요.');
+    } catch (error) {
+      console.error('식당 수정 실패:', error);
+      restaurantFormStatus.textContent = error.message || '식당 수정에 실패했어요.';
+    } finally {
+      restaurantSubmitBtn.disabled = false;
+    }
+  }
 
   searchInput.addEventListener('input', (e) => {
     searchTerm = e.target.value.trim();
