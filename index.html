@@ -260,6 +260,137 @@
     margin: 0 0 16px;
   }
 
+  .curation-heading-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .curation-heading-row .curation-header p { margin-bottom: 0; }
+
+  .restaurant-add-btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    background: var(--ink);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .restaurant-add-btn:hover { background: var(--primary-strong); }
+
+  .restaurant-dialog {
+    width: min(520px, calc(100% - 28px));
+    max-height: calc(100vh - 40px);
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 24px 70px rgba(38, 32, 25, 0.24);
+  }
+
+  .restaurant-dialog::backdrop {
+    background: rgba(38, 32, 25, 0.48);
+    backdrop-filter: blur(3px);
+  }
+
+  .restaurant-form { padding: 22px; }
+
+  .restaurant-form-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .restaurant-form-header h2 { margin: 0 0 4px; font-size: 20px; }
+  .restaurant-form-header p { margin: 0; color: var(--ink-3); font-size: 13px; }
+
+  .dialog-close-btn {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .restaurant-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .restaurant-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .restaurant-field.full { grid-column: 1 / -1; }
+  .restaurant-field label { font-size: 14px; font-weight: 700; }
+  .restaurant-field .optional { color: var(--ink-3); font-size: 12px; font-weight: 500; }
+
+  .restaurant-field input,
+  .restaurant-field select,
+  .restaurant-field textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 11px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .restaurant-field textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
+  .restaurant-field input:focus,
+  .restaurant-field select:focus,
+  .restaurant-field textarea:focus { outline: none; border-color: var(--primary); }
+  .restaurant-field small { color: var(--ink-3); font-size: 12px; line-height: 1.45; }
+
+  .restaurant-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .restaurant-form-actions button {
+    border-radius: var(--radius-sm);
+    padding: 10px 15px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .restaurant-cancel-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); }
+  .restaurant-submit-btn { border: none; background: var(--primary); color: #fff; }
+  .restaurant-submit-btn:disabled { opacity: 0.65; cursor: wait; }
+  .restaurant-form-status { min-height: 18px; margin: 12px 0 0; color: var(--primary-strong); font-size: 13px; }
+
+  @media (max-width: 480px) {
+    .curation-heading-row { align-items: center; }
+    .restaurant-form-grid { grid-template-columns: 1fr; }
+    .restaurant-field.full { grid-column: auto; }
+    .restaurant-form { padding: 18px; }
+  }
+
   .stat-row {
     display: flex;
     gap: 8px;
@@ -687,9 +818,12 @@
   </section>
 
   <section class="curation">
-    <div class="curation-header">
-      <h2>오늘의 점심 큐레이션</h2>
-      <p>도보 10분 이내 · 우리 팀이 채워가는 리스트</p>
+    <div class="curation-heading-row">
+      <div class="curation-header">
+        <h2>오늘의 점심 큐레이션</h2>
+        <p>도보 10분 이내 · 우리 팀이 채워가는 리스트</p>
+      </div>
+      <button class="restaurant-add-btn" id="openRestaurantDialog" type="button">＋ 식당 등록</button>
     </div>
 
     <div class="stat-row" id="statRow"></div>
@@ -714,6 +848,61 @@
   </footer>
 
 </div>
+
+<dialog class="restaurant-dialog" id="restaurantDialog" aria-labelledby="restaurantDialogTitle">
+  <form class="restaurant-form" id="restaurantForm">
+    <div class="restaurant-form-header">
+      <div>
+        <h2 id="restaurantDialogTitle">새 식당 등록</h2>
+        <p>우리 팀이 함께 볼 점심 후보를 추가해요.</p>
+      </div>
+      <button class="dialog-close-btn" id="closeRestaurantDialog" type="button" aria-label="등록 창 닫기">×</button>
+    </div>
+
+    <div class="restaurant-form-grid">
+      <div class="restaurant-field">
+        <label for="restaurantName">식당 이름</label>
+        <input id="restaurantName" name="name" type="text" maxlength="50" required autocomplete="off">
+      </div>
+      <div class="restaurant-field">
+        <label for="restaurantCategory">카테고리</label>
+        <select id="restaurantCategory" name="category" required>
+          <option value="">선택해주세요</option>
+          <option>한식</option>
+          <option>중식</option>
+          <option>일식</option>
+          <option>베트남음식</option>
+          <option>피자·양식</option>
+          <option>분식</option>
+          <option>마라탕</option>
+          <option>태국음식</option>
+          <option>도시락</option>
+          <option>술집</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="restaurant-field full">
+        <label for="restaurantAddress">주소 <span class="optional">선택</span></label>
+        <input id="restaurantAddress" name="address" type="text" maxlength="150" autocomplete="street-address">
+      </div>
+      <div class="restaurant-field full">
+        <label for="restaurantDescription">한 줄 설명 <span class="optional">선택</span></label>
+        <textarea id="restaurantDescription" name="description" maxlength="500" placeholder="추천 메뉴나 식당 분위기를 적어주세요."></textarea>
+      </div>
+      <div class="restaurant-field">
+        <label for="restaurantPhoto">대표 사진 <span class="optional">선택</span></label>
+        <input id="restaurantPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
+        <small>JPG·PNG·WebP, 원본 10MB 이하</small>
+      </div>
+    </div>
+
+    <p class="restaurant-form-status" id="restaurantFormStatus" role="status" aria-live="polite"></p>
+    <div class="restaurant-form-actions">
+      <button class="restaurant-cancel-btn" id="cancelRestaurantDialog" type="button">취소</button>
+      <button class="restaurant-submit-btn" id="restaurantSubmitBtn" type="submit">등록하기</button>
+    </div>
+  </form>
+</dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -781,6 +970,10 @@
   const pickBtn = document.getElementById('pickBtn');
   const confirmBtn = document.getElementById('confirmBtn');
   const excludeTodayToggle = document.getElementById('excludeTodayToggle');
+  const restaurantDialog = document.getElementById('restaurantDialog');
+  const restaurantForm = document.getElementById('restaurantForm');
+  const restaurantFormStatus = document.getElementById('restaurantFormStatus');
+  const restaurantSubmitBtn = document.getElementById('restaurantSubmitBtn');
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -1209,6 +1402,96 @@
     m.excluded = !input.checked;
     await saveMenus();
     renderGrid();
+  });
+
+  document.getElementById('openRestaurantDialog').addEventListener('click', () => {
+    restaurantForm.reset();
+    restaurantFormStatus.textContent = '';
+    restaurantDialog.showModal();
+    document.getElementById('restaurantName').focus();
+  });
+
+  document.getElementById('closeRestaurantDialog').addEventListener('click', () => restaurantDialog.close());
+  document.getElementById('cancelRestaurantDialog').addEventListener('click', () => restaurantDialog.close());
+  restaurantDialog.addEventListener('click', (event) => {
+    if (event.target === restaurantDialog) restaurantDialog.close();
+  });
+
+  restaurantForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!restaurantForm.reportValidity()) return;
+
+    const formData = new FormData(restaurantForm);
+    const photoFile = formData.get('photo');
+    let compressedPhoto = null;
+
+    restaurantSubmitBtn.disabled = true;
+    restaurantFormStatus.textContent = photoFile && photoFile.size ? '사진을 압축하는 중…' : '식당을 등록하는 중…';
+
+    try {
+      if (photoFile && photoFile.size) {
+        compressedPhoto = await compressRestaurantPhoto(photoFile);
+      }
+
+      const timestamp = new Date().toISOString();
+      const { data: restaurant, error: insertError } = await window.todayBapDb
+        .from('restaurants')
+        .insert({
+          name: String(formData.get('name') || '').trim(),
+          category: String(formData.get('category') || '').trim(),
+          address: String(formData.get('address') || '').trim() || null,
+          description: String(formData.get('description') || '').trim() || null,
+          photo_url: null,
+          created_by: String(formData.get('created_by') || '').trim() || '익명',
+          created_at: timestamp,
+          updated_at: timestamp
+        })
+        .select('id')
+        .single();
+
+      if (insertError) throw insertError;
+
+      let photoWarning = '';
+      if (compressedPhoto) {
+        restaurantFormStatus.textContent = '대표 사진을 업로드하는 중…';
+        const imagePath = `restaurants/${restaurant.id}/${crypto.randomUUID()}.webp`;
+        const { error: uploadError } = await window.todayBapDb.storage
+          .from(RESTAURANT_IMAGE_BUCKET)
+          .upload(imagePath, compressedPhoto, {
+            contentType: 'image/webp',
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error('신규 식당 대표 사진 업로드 실패:', uploadError);
+          photoWarning = '식당은 등록됐지만 대표 사진은 저장하지 못했어요.';
+        } else {
+          const { error: photoUpdateError } = await window.todayBapDb
+            .from('restaurants')
+            .update({ photo_url: imagePath })
+            .eq('id', restaurant.id);
+          if (photoUpdateError) {
+            console.error('신규 식당 대표 사진 경로 저장 실패:', photoUpdateError);
+            photoWarning = '식당은 등록됐지만 대표 사진 연결은 실패했어요.';
+          }
+        }
+      }
+
+      await loadMenus();
+      renderCategoryChips();
+      renderPhotoGallery();
+      renderGrid();
+      renderStats();
+      restaurantDialog.close();
+      restaurantForm.reset();
+      alert(photoWarning || '식당을 등록했어요.');
+    } catch (error) {
+      console.error('식당 등록 실패:', error);
+      restaurantFormStatus.textContent = error.message || '식당 등록에 실패했어요.';
+    } finally {
+      restaurantSubmitBtn.disabled = false;
+    }
   });
 
   searchInput.addEventListener('input', (e) => {
