@@ -954,6 +954,40 @@
     opacity: 0.65;
   }
 
+  .rating-control { display: flex; flex-direction: column; gap: 3px; }
+
+  .rating-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .rating-summary .average { color: #E8A317; }
+  .rating-summary .count { color: var(--ink-3); font-size: 11.5px; font-weight: 500; }
+  .rating-stars { display: inline-flex; align-items: center; gap: 1px; }
+
+  .rating-star {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #D9D2C9;
+    font-family: inherit;
+    font-size: 21px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.12s ease, transform 0.12s ease;
+  }
+
+  .rating-star.selected { color: #F2B01E; }
+  .rating-star:hover,
+  .rating-star:focus-visible { color: #E8A317; transform: scale(1.12); outline: none; }
+  .rating-star:disabled { cursor: wait; opacity: 0.6; }
+
   .pool-toggle {
     font-size: 11.5px;
     color: var(--ink-3);
@@ -1062,7 +1096,7 @@
         <input type="text" id="searchInput" placeholder="메뉴 이름으로 찾기">
         <select id="sortSelect">
           <option value="default">기본 순서</option>
-          <option value="likes">좋아요 많은 순</option>
+          <option value="rating">별점 높은 순</option>
           <option value="name">가나다 순</option>
         </select>
       </div>
@@ -1073,7 +1107,7 @@
   </section>
 
   <footer>
-    맛집 목록과 좋아요·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
+    맛집 목록과 별점·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
   </footer>
 
 </div>
@@ -1351,14 +1385,14 @@
   }
 
   async function loadMenus() {
-    const [restaurantsResult, likesResult, reviewsResult] = await Promise.all([
+    const [restaurantsResult, ratingsResult, reviewsResult] = await Promise.all([
       window.todayBapDb
         .from('restaurants')
         .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
         .order('created_at', { ascending: true }),
       window.todayBapDb
-        .from('restaurant_likes')
-        .select('restaurant_id, client_id'),
+        .from('restaurant_ratings')
+        .select('restaurant_id, client_id, rating'),
       window.todayBapDb
         .from('reviews')
         .select('id, restaurant_id, author_name, content, image_path, client_id, created_at')
@@ -1372,24 +1406,21 @@
       return;
     }
 
-    if (likesResult.error) {
-      console.error('Supabase 좋아요 조회 실패:', likesResult.error);
+    if (ratingsResult.error) {
+      console.error('Supabase 별점 조회 실패:', ratingsResult.error);
     }
     if (reviewsResult.error) {
       console.error('Supabase 리뷰 조회 실패:', reviewsResult.error);
     }
 
-    const likes = likesResult.data || [];
-    const likeCountByRestaurant = new Map();
-    const likedRestaurantIds = new Set();
-    likes.forEach(like => {
-      likeCountByRestaurant.set(
-        like.restaurant_id,
-        (likeCountByRestaurant.get(like.restaurant_id) || 0) + 1
-      );
-      if (like.client_id === clientId) {
-        likedRestaurantIds.add(like.restaurant_id);
-      }
+    const ratingStatsByRestaurant = new Map();
+    const myRatingByRestaurant = new Map();
+    (ratingsResult.data || []).forEach(item => {
+      const stats = ratingStatsByRestaurant.get(item.restaurant_id) || { total: 0, count: 0 };
+      stats.total += Number(item.rating) || 0;
+      stats.count += 1;
+      ratingStatsByRestaurant.set(item.restaurant_id, stats);
+      if (item.client_id === clientId) myRatingByRestaurant.set(item.restaurant_id, Number(item.rating));
     });
 
     const reviewsByRestaurant = new Map();
@@ -1427,14 +1458,17 @@
         photoPath: m.photo_url || '',
         createdBy: m.created_by || '',
         excluded: Boolean(local.excluded),
-        likes: likeCountByRestaurant.get(m.id) || 0,
-        liked: likedRestaurantIds.has(m.id),
+        ratingAverage: ratingStatsByRestaurant.has(m.id)
+          ? ratingStatsByRestaurant.get(m.id).total / ratingStatsByRestaurant.get(m.id).count
+          : 0,
+        ratingCount: ratingStatsByRestaurant.get(m.id)?.count || 0,
+        myRating: myRatingByRestaurant.get(m.id) || 0,
         comments: reviewsByRestaurant.get(m.id) || []
       };
     });
 
     const failedParts = [];
-    if (likesResult.error) failedParts.push('좋아요');
+    if (ratingsResult.error) failedParts.push('별점');
     if (reviewsResult.error) failedParts.push('리뷰');
   }
 
@@ -1629,7 +1663,11 @@
       if (searchTerm && !m.name.includes(searchTerm)) return false;
       return true;
     });
-    if (sortMode === 'likes') list = [...list].sort((a, b) => b.likes - a.likes);
+    if (sortMode === 'rating') {
+      list = [...list].sort((a, b) =>
+        b.ratingAverage - a.ratingAverage || b.ratingCount - a.ratingCount
+      );
+    }
     if (sortMode === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     return list;
   }
@@ -1662,6 +1700,11 @@
     list.forEach(m => {
       const card = document.createElement('div');
       card.className = 'card' + (m.excluded ? ' excluded' : '');
+      const ratingStarsHtml = [1, 2, 3, 4, 5].map(rating => `
+        <button class="rating-star${rating <= m.myRating ? ' selected' : ''}" type="button"
+          data-id="${m.id}" data-rating="${rating}" data-action="rating"
+          aria-label="${m.name} ${rating}점 주기" aria-pressed="${m.myRating === rating ? 'true' : 'false'}">★</button>
+      `).join('');
       const commentsHtml = (m.comments && m.comments.length)
         ? m.comments.map(c => `
           <div class="comment-item">
@@ -1705,7 +1748,13 @@
           </div>
         </div>
         <div class="card-bottom">
-          <button class="like-btn${m.liked ? ' liked' : ''}" data-id="${m.id}" data-action="like" aria-pressed="${m.liked ? 'true' : 'false'}">👍 <span>${m.likes}</span></button>
+          <div class="rating-control">
+            <div class="rating-summary">
+              <span class="average">★ ${m.ratingCount ? m.ratingAverage.toFixed(1) : '-'}</span>
+              <span class="count">(${m.ratingCount}명)</span>
+            </div>
+            <div class="rating-stars" role="group" aria-label="${m.name} 내 별점">${ratingStarsHtml}</div>
+          </div>
           <label class="pool-toggle">
             <input type="checkbox" data-id="${m.id}" data-action="pool" ${m.excluded ? '' : 'checked'}>
             뽑기 후보
@@ -1783,34 +1832,39 @@
       renderGrid();
       return;
     }
-    if (btn.dataset.action === 'like') {
-      btn.disabled = true;
+    if (btn.dataset.action === 'rating') {
+      const rating = Number(btn.dataset.rating);
+      const ratingButtons = btn.closest('.rating-stars').querySelectorAll('.rating-star');
+      ratingButtons.forEach(button => { button.disabled = true; });
       let error;
 
-      if (m.liked) {
+      if (m.myRating === rating) {
         ({ error } = await window.todayBapDb
-          .from('restaurant_likes')
+          .from('restaurant_ratings')
           .delete()
           .eq('restaurant_id', m.id)
           .eq('client_id', clientId));
       } else {
         ({ error } = await window.todayBapDb
-          .from('restaurant_likes')
-          .insert({
+          .from('restaurant_ratings')
+          .upsert({
             restaurant_id: m.id,
-            client_id: clientId
-          }));
+            client_id: clientId,
+            rating,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'restaurant_id,client_id' }));
       }
 
       if (error) {
-        console.error(m.liked ? '좋아요 취소 실패:' : '좋아요 등록 실패:', error);
-        alert(m.liked ? '좋아요 취소에 실패했어요.' : '좋아요 등록에 실패했어요.');
-        btn.disabled = false;
+        console.error('별점 저장 실패:', error);
+        alert('별점을 저장하지 못했어요. restaurant_ratings 테이블과 RLS 정책을 확인해주세요.');
+        ratingButtons.forEach(button => { button.disabled = false; });
         return;
       }
 
       await loadMenus();
       renderGrid();
+      return;
     }
     if (btn.dataset.action === 'comment-submit') {
       const card = btn.closest('.card');
