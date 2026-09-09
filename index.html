@@ -1095,8 +1095,9 @@
       <div class="search-row">
         <input type="text" id="searchInput" placeholder="메뉴 이름으로 찾기">
         <select id="sortSelect">
-          <option value="default">기본 순서</option>
+          <option value="default">최신 등록 순</option>
           <option value="rating">별점 높은 순</option>
+          <option value="reviews">댓글 많은 순</option>
           <option value="name">가나다 순</option>
         </select>
       </div>
@@ -1666,6 +1667,12 @@
     if (sortMode === 'rating') {
       list = [...list].sort((a, b) =>
         b.ratingAverage - a.ratingAverage || b.ratingCount - a.ratingCount
+      );
+    }
+    if (sortMode === 'reviews') {
+      list = [...list].sort((a, b) =>
+        (b.comments?.length || 0) - (a.comments?.length || 0)
+        || b.ratingAverage - a.ratingAverage
       );
     }
     if (sortMode === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
