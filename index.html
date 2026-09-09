@@ -675,13 +675,59 @@
     font-size: 12px;
     color: var(--ink-2);
     line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 0;
   }
 
-  .comment-item b {
+  .comment-copy {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .comment-copy b {
     color: var(--ink);
     font-weight: 700;
     margin-right: 4px;
   }
+
+  .comment-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .comment-action-btn {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-3);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .comment-action-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+  }
+
+  .comment-action-btn:hover {
+    color: var(--primary);
+    border-color: var(--line);
+    background: var(--primary-tint);
+  }
+
+  .comment-action-btn.delete:hover { color: #c13d2a; background: #fff1ee; }
+  .comment-action-btn:disabled { opacity: 0.5; cursor: wait; }
 
   .comment-empty {
     font-size: 11.5px;
@@ -945,6 +991,7 @@
   const CATEGORY_EMOJI = {
     '한식': '🍚',
     '중식': '🥟',
+    '일식': '🍣',
     '베트남음식': '🍜',
     '피자·양식': '🍕',
     '술집': '🍻',
@@ -954,6 +1001,7 @@
     '마라탕': '🌶️',
     '일식': '🍣',
     '태국음식': '🍛',
+    '카페': '☕',
   };
 
 
@@ -1112,7 +1160,7 @@
         .select('restaurant_id, client_id'),
       window.todayBapDb
         .from('reviews')
-        .select('id, restaurant_id, author_name, content, image_path, created_at')
+        .select('id, restaurant_id, author_name, content, image_path, client_id, created_at')
         .order('created_at', { ascending: true })
     ]);
 
@@ -1151,6 +1199,8 @@
         author: review.author_name || '익명',
         text: review.content,
         imagePath: review.image_path || '',
+        clientId: review.client_id || '',
+        owned: Boolean(review.client_id && review.client_id === clientId),
         date: review.created_at
       });
       reviewsByRestaurant.set(review.restaurant_id, restaurantReviews);
@@ -1322,7 +1372,21 @@
       const card = document.createElement('div');
       card.className = 'card' + (m.excluded ? ' excluded' : '');
       const commentsHtml = (m.comments && m.comments.length)
-        ? m.comments.map(c => `<div class="comment-item"><b>${escapeHtml(c.author || '익명')}</b>${escapeHtml(c.text)}</div>`).join('')
+        ? m.comments.map(c => `
+          <div class="comment-item">
+            <div class="comment-copy"><b>${escapeHtml(c.author || '익명')}</b>${escapeHtml(c.text)}</div>
+            ${c.owned ? `
+              <div class="comment-actions" aria-label="내 리뷰 관리">
+                <button class="comment-action-btn" type="button" data-id="${m.id}" data-review-id="${c.id}" data-action="comment-edit" aria-label="리뷰 수정" title="리뷰 수정">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button class="comment-action-btn delete" type="button" data-id="${m.id}" data-review-id="${c.id}" data-action="comment-delete" aria-label="리뷰 삭제" title="리뷰 삭제">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')
         : '<div class="comment-empty">아직 리뷰가 없어요. 먼저 남겨보세요.</div>';
       card.innerHTML = `
         <div class="card-photo-area">
@@ -1371,6 +1435,63 @@
       openEditDialog(m);
       return;
     }
+    if (btn.dataset.action === 'comment-edit') {
+      const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
+      if (!review || !review.owned) return;
+
+      const editedText = prompt('리뷰 내용을 수정해주세요.', review.text);
+      if (editedText === null) return;
+      const content = editedText.trim();
+      if (!content) {
+        alert('리뷰 내용을 입력해주세요.');
+        return;
+      }
+      if (content.length > 500) {
+        alert('리뷰는 500자 이하로 입력해주세요.');
+        return;
+      }
+
+      btn.disabled = true;
+      const { error } = await window.todayBapDb
+        .from('reviews')
+        .update({ content })
+        .eq('id', review.id)
+        .eq('client_id', clientId);
+
+      if (error) {
+        console.error('리뷰 수정 실패:', error);
+        alert('리뷰 수정에 실패했어요. RLS 정책을 확인해주세요.');
+        btn.disabled = false;
+        return;
+      }
+
+      await loadMenus();
+      renderGrid();
+      return;
+    }
+    if (btn.dataset.action === 'comment-delete') {
+      const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
+      if (!review || !review.owned) return;
+      if (!confirm('이 리뷰를 삭제할까요? 삭제하면 되돌릴 수 없어요.')) return;
+
+      btn.disabled = true;
+      const { error } = await window.todayBapDb
+        .from('reviews')
+        .delete()
+        .eq('id', review.id)
+        .eq('client_id', clientId);
+
+      if (error) {
+        console.error('리뷰 삭제 실패:', error);
+        alert('리뷰 삭제에 실패했어요. RLS 정책을 확인해주세요.');
+        btn.disabled = false;
+        return;
+      }
+
+      await loadMenus();
+      renderGrid();
+      return;
+    }
     if (btn.dataset.action === 'like') {
       btn.disabled = true;
       let error;
@@ -1415,6 +1536,7 @@
           author_name: authorInput.value.trim() || '익명',
           content: text,
           image_path: null,
+          client_id: clientId,
           created_at: new Date().toISOString()
         });
 
