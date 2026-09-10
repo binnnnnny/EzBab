@@ -1069,39 +1069,31 @@
     opacity: 0.65;
   }
 
-  .rating-control { display: flex; flex-direction: column; gap: 3px; }
+  .vote-control { display: inline-flex; align-items: center; gap: 5px; }
 
-  .rating-summary {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    color: var(--ink);
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  .rating-summary .average { color: #E8A317; }
-  .rating-summary .count { color: var(--ink-3); font-size: 11.5px; font-weight: 500; }
-  .rating-stars { display: inline-flex; align-items: center; gap: 1px; }
-
-  .rating-star {
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #D9D2C9;
+  .vote-btn {
+    min-width: 54px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-2);
     font-family: inherit;
-    font-size: 21px;
-    line-height: 1;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    transition: color 0.12s ease, transform 0.12s ease;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
   }
 
-  .rating-star.selected { color: #F2B01E; }
-  .rating-star:hover,
-  .rating-star:focus-visible { color: #E8A317; transform: scale(1.12); outline: none; }
-  .rating-star:disabled { cursor: wait; opacity: 0.6; }
+  .vote-btn:hover { border-color: var(--primary); transform: translateY(-1px); }
+  .vote-btn.up.selected { border-color: var(--primary); background: var(--primary-tint); color: var(--primary); }
+  .vote-btn.down.selected { border-color: #8A8178; background: #F1EFEC; color: #5F5750; }
+  .vote-btn:disabled { cursor: wait; opacity: 0.6; }
 
   .pool-toggle {
     font-size: 11.5px;
@@ -1215,7 +1207,7 @@
         <input type="text" id="searchInput" placeholder="메뉴 이름으로 찾기">
         <select id="sortSelect">
           <option value="default">최신 등록 순</option>
-          <option value="rating">별점 높은 순</option>
+          <option value="votes">추천 많은 순</option>
           <option value="reviews">댓글 많은 순</option>
           <option value="name">가나다 순</option>
         </select>
@@ -1227,7 +1219,7 @@
   </section>
 
   <footer>
-    맛집 목록과 별점·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
+    맛집 목록과 추천·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
   </footer>
 
 </div>
@@ -1516,14 +1508,14 @@
   }
 
   async function loadMenus() {
-    const [restaurantsResult, ratingsResult, reviewsResult, photosResult] = await Promise.all([
+    const [restaurantsResult, votesResult, reviewsResult, photosResult] = await Promise.all([
       window.todayBapDb
         .from('restaurants')
         .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
         .order('created_at', { ascending: true }),
       window.todayBapDb
-        .from('restaurant_ratings')
-        .select('restaurant_id, client_id, rating'),
+        .from('restaurant_votes')
+        .select('restaurant_id, client_id, vote'),
       window.todayBapDb
         .from('reviews')
         .select('id, restaurant_id, author_name, content, image_path, client_id, created_at')
@@ -1541,8 +1533,8 @@
       return;
     }
 
-    if (ratingsResult.error) {
-      console.error('Supabase 별점 조회 실패:', ratingsResult.error);
+    if (votesResult.error) {
+      console.error('Supabase 추천 조회 실패:', votesResult.error);
     }
     if (reviewsResult.error) {
       console.error('Supabase 리뷰 조회 실패:', reviewsResult.error);
@@ -1551,14 +1543,14 @@
       console.error('Supabase 식당 사진 조회 실패:', photosResult.error);
     }
 
-    const ratingStatsByRestaurant = new Map();
-    const myRatingByRestaurant = new Map();
-    (ratingsResult.data || []).forEach(item => {
-      const stats = ratingStatsByRestaurant.get(item.restaurant_id) || { total: 0, count: 0 };
-      stats.total += Number(item.rating) || 0;
-      stats.count += 1;
-      ratingStatsByRestaurant.set(item.restaurant_id, stats);
-      if (item.client_id === clientId) myRatingByRestaurant.set(item.restaurant_id, Number(item.rating));
+    const voteStatsByRestaurant = new Map();
+    const myVoteByRestaurant = new Map();
+    (votesResult.data || []).forEach(item => {
+      const stats = voteStatsByRestaurant.get(item.restaurant_id) || { up: 0, down: 0 };
+      if (Number(item.vote) === 1) stats.up += 1;
+      if (Number(item.vote) === -1) stats.down += 1;
+      voteStatsByRestaurant.set(item.restaurant_id, stats);
+      if (item.client_id === clientId) myVoteByRestaurant.set(item.restaurant_id, Number(item.vote));
     });
 
     const reviewsByRestaurant = new Map();
@@ -1610,18 +1602,17 @@
         photoPath: m.photo_url || '',
         createdBy: m.created_by || '',
         excluded: Boolean(local.excluded),
-        ratingAverage: ratingStatsByRestaurant.has(m.id)
-          ? ratingStatsByRestaurant.get(m.id).total / ratingStatsByRestaurant.get(m.id).count
-          : 0,
-        ratingCount: ratingStatsByRestaurant.get(m.id)?.count || 0,
-        myRating: myRatingByRestaurant.get(m.id) || 0,
+        upVotes: voteStatsByRestaurant.get(m.id)?.up || 0,
+        downVotes: voteStatsByRestaurant.get(m.id)?.down || 0,
+        voteScore: (voteStatsByRestaurant.get(m.id)?.up || 0) - (voteStatsByRestaurant.get(m.id)?.down || 0),
+        myVote: myVoteByRestaurant.get(m.id) || 0,
         comments: reviewsByRestaurant.get(m.id) || [],
         photos: photosByRestaurant.get(m.id) || []
       };
     });
 
     const failedParts = [];
-    if (ratingsResult.error) failedParts.push('별점');
+    if (votesResult.error) failedParts.push('추천');
     if (reviewsResult.error) failedParts.push('리뷰');
     if (photosResult.error) failedParts.push('사진');
   }
@@ -1817,16 +1808,16 @@
       if (searchTerm && !m.name.includes(searchTerm)) return false;
       return true;
     });
-    if (sortMode === 'rating') {
+    if (sortMode === 'votes') {
       list = [...list].sort((a, b) =>
-        b.ratingAverage - a.ratingAverage || b.ratingCount - a.ratingCount
+        b.voteScore - a.voteScore || b.upVotes - a.upVotes
       );
     }
     if (sortMode === 'reviews') {
       list = [...list].sort((a, b) =>
         (b.comments || []).filter(comment => comment.text?.trim()).length
         - (a.comments || []).filter(comment => comment.text?.trim()).length
-        || b.ratingAverage - a.ratingAverage
+        || b.voteScore - a.voteScore
       );
     }
     if (sortMode === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
@@ -1907,11 +1898,6 @@
     list.forEach(m => {
       const card = document.createElement('div');
       card.className = 'card' + (m.excluded ? ' excluded' : '');
-      const ratingStarsHtml = [1, 2, 3, 4, 5].map(rating => `
-        <button class="rating-star${rating <= m.myRating ? ' selected' : ''}" type="button"
-          data-id="${m.id}" data-rating="${rating}" data-action="rating"
-          aria-label="${m.name} ${rating}점 주기" aria-pressed="${m.myRating === rating ? 'true' : 'false'}">★</button>
-      `).join('');
       const cardPhotos = [];
       if (m.photo) cardPhotos.push({
         url: m.photo,
@@ -2014,12 +2000,9 @@
           </div>
         </div>
         <div class="card-bottom">
-          <div class="rating-control">
-            <div class="rating-summary">
-              <span class="average">★ ${m.ratingCount ? m.ratingAverage.toFixed(1) : '-'}</span>
-              <span class="count">(${m.ratingCount}명)</span>
-            </div>
-            <div class="rating-stars" role="group" aria-label="${m.name} 내 별점">${ratingStarsHtml}</div>
+          <div class="vote-control" role="group" aria-label="${m.name} 추천 평가">
+            <button class="vote-btn up${m.myVote === 1 ? ' selected' : ''}" type="button" data-id="${m.id}" data-vote="1" data-action="vote" aria-label="${m.name} 추천" aria-pressed="${m.myVote === 1 ? 'true' : 'false'}">👍 <span>${m.upVotes}</span></button>
+            <button class="vote-btn down${m.myVote === -1 ? ' selected' : ''}" type="button" data-id="${m.id}" data-vote="-1" data-action="vote" aria-label="${m.name} 아쉬워요" aria-pressed="${m.myVote === -1 ? 'true' : 'false'}">👎 <span>${m.downVotes}</span></button>
           </div>
           <label class="pool-toggle">
             <input type="checkbox" data-id="${m.id}" data-action="pool" ${m.excluded ? '' : 'checked'}>
@@ -2194,33 +2177,33 @@
       renderGrid();
       return;
     }
-    if (btn.dataset.action === 'rating') {
-      const rating = Number(btn.dataset.rating);
-      const ratingButtons = btn.closest('.rating-stars').querySelectorAll('.rating-star');
-      ratingButtons.forEach(button => { button.disabled = true; });
+    if (btn.dataset.action === 'vote') {
+      const vote = Number(btn.dataset.vote);
+      const voteButtons = btn.closest('.vote-control').querySelectorAll('.vote-btn');
+      voteButtons.forEach(button => { button.disabled = true; });
       let error;
 
-      if (m.myRating === rating) {
+      if (m.myVote === vote) {
         ({ error } = await window.todayBapDb
-          .from('restaurant_ratings')
+          .from('restaurant_votes')
           .delete()
           .eq('restaurant_id', m.id)
           .eq('client_id', clientId));
       } else {
         ({ error } = await window.todayBapDb
-          .from('restaurant_ratings')
+          .from('restaurant_votes')
           .upsert({
             restaurant_id: m.id,
             client_id: clientId,
-            rating,
+            vote,
             updated_at: new Date().toISOString()
           }, { onConflict: 'restaurant_id,client_id' }));
       }
 
       if (error) {
-        console.error('별점 저장 실패:', error);
-        alert('별점을 저장하지 못했어요. restaurant_ratings 테이블과 RLS 정책을 확인해주세요.');
-        ratingButtons.forEach(button => { button.disabled = false; });
+        console.error('추천 평가 저장 실패:', error);
+        alert('평가를 저장하지 못했어요. restaurant_votes 테이블과 RLS 정책을 확인해주세요.');
+        voteButtons.forEach(button => { button.disabled = false; });
         return;
       }
 
