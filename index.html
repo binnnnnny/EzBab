@@ -1513,7 +1513,10 @@
       window.todayBapDb
         .from('restaurants')
         .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
-        .order('created_at', { ascending: true }),
+        .order('created_at', {
+          ascending: false,
+          nullsFirst: false
+        }),
       window.todayBapDb
         .from('restaurant_votes')
         .select('restaurant_id, client_id, vote'),
