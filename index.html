@@ -3410,11 +3410,21 @@
   }
 
   function renderWorldcupCardInner(menu) {
-    const photo = menu.photos && menu.photos.length > 0 
-      ? `<img src="${SUPABASE_URL}/storage/v1/object/public/${RESTAURANT_IMAGE_BUCKET}/${menu.photos[0].image_path}" alt="" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;">` 
+    let photoUrl = '';
+    if (menu.photo) {
+      photoUrl = menu.photo;
+    } else if (menu.photos && menu.photos.length > 0) {
+      photoUrl = menu.photos[0].url;
+    } else if (menu.comments && menu.comments.find(c => c.imagePath)) {
+      photoUrl = restaurantPhotoUrl(menu.comments.find(c => c.imagePath).imagePath);
+    }
+
+    const photoHtml = photoUrl 
+      ? `<img src="${photoUrl}" alt="" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;">` 
       : `<div style="font-size:40px; margin-bottom:8px;">${CATEGORY_EMOJI[menu.category] || '🍽️'}</div>`;
+      
     return `
-      ${photo}
+      ${photoHtml}
       <div class="card-name">${escapeHtml(menu.name)}</div>
       <div style="font-size:12px; color:var(--ink-3);">${escapeHtml(menu.category)}</div>
     `;
