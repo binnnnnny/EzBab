@@ -640,6 +640,29 @@
 
   .photo-gallery::-webkit-scrollbar { display: none; }
 
+  .photo-gallery-shell { position: relative; }
+
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    transform: translateY(-50%);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .gallery-nav.previous { left: -12px; }
+  .gallery-nav.next { right: -12px; }
+  .gallery-nav:disabled { display: none; }
+
   .photo-card {
     flex: 0 0 132px;
     scroll-snap-align: start;
@@ -716,6 +739,82 @@
     display: block;
   }
 
+  .card-photo-track {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .card-photo-track::-webkit-scrollbar { display: none; }
+
+  .card-photo-slide {
+    position: relative;
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: start;
+  }
+
+  .card-photo-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    transform: translateY(-50%);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 50%;
+    background: rgba(30, 25, 22, 0.62);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .card-photo-nav.previous { left: 8px; }
+  .card-photo-nav.next { right: 8px; }
+
+  .card-photo-count {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(30, 25, 22, 0.66);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .card-photo-delete {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 50%;
+    background: rgba(30, 25, 22, 0.72);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .card-photo-delete svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+    margin: auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .card-photo-empty {
     width: 100%;
     height: 100%;
@@ -733,16 +832,29 @@
     bottom: 10px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 7px 10px;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 10px;
     border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: var(--radius-sm);
-    background: rgba(30, 25, 22, 0.78);
+    border-radius: 999px;
+    background: rgba(30, 25, 22, 0.86);
     color: #fff;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     backdrop-filter: blur(5px);
+    white-space: nowrap;
+  }
+
+  .photo-upload-label svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .photo-upload-label:hover { background: rgba(30, 25, 22, 0.9); }
@@ -886,12 +998,15 @@
   .comment-form {
     display: flex;
     gap: 4px;
+    align-items: center;
   }
 
   .comment-form input[type="text"].name-input {
     width: 52px;
     flex-shrink: 0;
   }
+
+  .comment-form input[data-role="comment-text"] { flex: 1 1 auto; }
 
   .comment-form input[type="text"] {
     border: 1px solid var(--line);
@@ -1077,7 +1192,11 @@
       <h2>오늘의 추천 점심, 사진으로 구경해보세요 🧐</h2>
       <p>우리 팀이 실제로 찍고 남긴 점심 기록들이에요</p>
     </div>
-    <div class="photo-gallery" id="photoGallery"></div>
+    <div class="photo-gallery-shell">
+      <button class="gallery-nav previous" id="previousPhotoBtn" type="button" aria-label="이전 사진">‹</button>
+      <div class="photo-gallery" id="photoGallery"></div>
+      <button class="gallery-nav next" id="nextPhotoBtn" type="button" aria-label="다음 사진">›</button>
+    </div>
   </section>
 
   <section class="curation">
@@ -1256,6 +1375,9 @@
   const searchInput = document.getElementById('searchInput');
   const sortSelect = document.getElementById('sortSelect');
   const statRow = document.getElementById('statRow');
+  const photoGallery = document.getElementById('photoGallery');
+  const previousPhotoBtn = document.getElementById('previousPhotoBtn');
+  const nextPhotoBtn = document.getElementById('nextPhotoBtn');
   const weekStrip = document.getElementById('weekStrip');
   const pickerEmoji = document.getElementById('pickerEmoji');
   const pickerText = document.getElementById('pickerText');
@@ -1344,7 +1466,7 @@
     return blob;
   }
 
-  async function uploadRestaurantPhoto(input, menu) {
+  async function uploadRestaurantGalleryPhoto(input, menu) {
     const file = input.files && input.files[0];
     if (!file) return;
 
@@ -1366,27 +1488,35 @@
         });
       if (uploadError) throw uploadError;
 
-      const { error: updateError } = await window.todayBapDb
-        .from('restaurants')
-        .update({ photo_url: imagePath })
-        .eq('id', menu.id);
-      if (updateError) throw updateError;
+      const { error: insertError } = await window.todayBapDb
+        .from('restaurant_photos')
+        .insert({
+          restaurant_id: menu.id,
+          image_path: imagePath,
+          client_id: clientId,
+          author_name: '익명',
+          created_at: new Date().toISOString()
+        });
+      if (insertError) {
+        await window.todayBapDb.storage.from(RESTAURANT_IMAGE_BUCKET).remove([imagePath]);
+        throw insertError;
+      }
 
       await loadMenus();
       renderPhotoGallery();
       renderGrid();
     } catch (error) {
-      console.error('대표 사진 등록 실패:', error);
-      alert(error.message || '대표 사진 등록에 실패했어요.');
+      console.error('사진 추가 실패:', error);
+      alert(error.message || '사진을 추가하지 못했어요. restaurant_photos 정책을 확인해주세요.');
       input.disabled = false;
       label.classList.remove('is-uploading');
-      labelText.textContent = menu.photo ? '사진 변경' : '대표 사진 등록';
+      labelText.textContent = '사진 추가';
       input.value = '';
     }
   }
 
   async function loadMenus() {
-    const [restaurantsResult, ratingsResult, reviewsResult] = await Promise.all([
+    const [restaurantsResult, ratingsResult, reviewsResult, photosResult] = await Promise.all([
       window.todayBapDb
         .from('restaurants')
         .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
@@ -1397,6 +1527,10 @@
       window.todayBapDb
         .from('reviews')
         .select('id, restaurant_id, author_name, content, image_path, client_id, created_at')
+        .order('created_at', { ascending: true }),
+      window.todayBapDb
+        .from('restaurant_photos')
+        .select('id, restaurant_id, image_path, client_id, author_name, created_at')
         .order('created_at', { ascending: true })
     ]);
 
@@ -1412,6 +1546,9 @@
     }
     if (reviewsResult.error) {
       console.error('Supabase 리뷰 조회 실패:', reviewsResult.error);
+    }
+    if (photosResult.error) {
+      console.error('Supabase 식당 사진 조회 실패:', photosResult.error);
     }
 
     const ratingStatsByRestaurant = new Map();
@@ -1439,6 +1576,20 @@
       reviewsByRestaurant.set(review.restaurant_id, restaurantReviews);
     });
 
+    const photosByRestaurant = new Map();
+    (photosResult.data || []).forEach(photo => {
+      const restaurantPhotos = photosByRestaurant.get(photo.restaurant_id) || [];
+      restaurantPhotos.push({
+        id: photo.id,
+        imagePath: photo.image_path,
+        url: restaurantPhotoUrl(photo.image_path),
+        author: photo.author_name || '익명',
+        owned: Boolean(photo.client_id && photo.client_id === clientId),
+        date: photo.created_at
+      });
+      photosByRestaurant.set(photo.restaurant_id, restaurantPhotos);
+    });
+
     let localMenus = [];
     try {
       localMenus = JSON.parse(localStorage.getItem(MENU_KEY) || '[]');
@@ -1464,13 +1615,15 @@
           : 0,
         ratingCount: ratingStatsByRestaurant.get(m.id)?.count || 0,
         myRating: myRatingByRestaurant.get(m.id) || 0,
-        comments: reviewsByRestaurant.get(m.id) || []
+        comments: reviewsByRestaurant.get(m.id) || [],
+        photos: photosByRestaurant.get(m.id) || []
       };
     });
 
     const failedParts = [];
     if (ratingsResult.error) failedParts.push('별점');
     if (reviewsResult.error) failedParts.push('리뷰');
+    if (photosResult.error) failedParts.push('사진');
   }
 
   async function saveMenus() {
@@ -1671,7 +1824,8 @@
     }
     if (sortMode === 'reviews') {
       list = [...list].sort((a, b) =>
-        (b.comments?.length || 0) - (a.comments?.length || 0)
+        (b.comments || []).filter(comment => comment.text?.trim()).length
+        - (a.comments || []).filter(comment => comment.text?.trim()).length
         || b.ratingAverage - a.ratingAverage
       );
     }
@@ -1680,21 +1834,67 @@
   }
 
   function renderPhotoGallery() {
-    const gallery = document.getElementById('photoGallery');
-    if (!gallery) return;
-    const withPhotos = menus.filter(m => m.photo);
-    if (withPhotos.length === 0) {
-      gallery.innerHTML = '<div class="empty-state">아직 등록된 사진이 없어요.</div>';
+    if (!photoGallery) return;
+    const photos = [];
+
+    menus.forEach(menu => {
+      if (menu.photo) {
+        photos.push({
+          url: menu.photo,
+          restaurantName: menu.name,
+          category: menu.category,
+          date: ''
+        });
+      }
+      (menu.photos || []).forEach(photo => {
+        photos.push({
+          url: photo.url,
+          restaurantName: menu.name,
+          category: menu.category,
+          date: photo.date || ''
+        });
+      });
+      (menu.comments || []).forEach(comment => {
+        if (!comment.imagePath) return;
+        photos.push({
+          url: restaurantPhotoUrl(comment.imagePath),
+          restaurantName: menu.name,
+          category: menu.category,
+          date: comment.date || ''
+        });
+      });
+    });
+
+    photos.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    if (photos.length === 0) {
+      photoGallery.innerHTML = '<div class="empty-state">아직 등록된 사진이 없어요.</div>';
+      previousPhotoBtn.disabled = true;
+      nextPhotoBtn.disabled = true;
       return;
     }
-    const shuffled = [...withPhotos].sort(() => Math.random() - 0.5);
-    const picked = shuffled.slice(0, 8);
-    gallery.innerHTML = picked.map(m => `
+
+    photoGallery.innerHTML = photos.map(photo => `
       <div class="photo-card">
-        <img src="${m.photo}" alt="${m.name}" loading="lazy">
-        <div class="photo-card-caption"><span class="cat-emoji">${CATEGORY_EMOJI[m.category] || ''}</span>${m.name}</div>
+        <img src="${photo.url}" alt="${escapeHtml(photo.restaurantName)} 음식 사진" loading="lazy">
+        <div class="photo-card-caption"><span class="cat-emoji">${CATEGORY_EMOJI[photo.category] || ''}</span>${escapeHtml(photo.restaurantName)}</div>
       </div>
     `).join('');
+    requestAnimationFrame(updatePhotoGalleryNavigation);
+  }
+
+  function updatePhotoGalleryNavigation() {
+    const maxScroll = Math.max(0, photoGallery.scrollWidth - photoGallery.clientWidth);
+    previousPhotoBtn.disabled = photoGallery.scrollLeft <= 2;
+    nextPhotoBtn.disabled = photoGallery.scrollLeft >= maxScroll - 2 || maxScroll === 0;
+  }
+
+  function updateCardPhotoCount(track) {
+    if (!track || !track.clientWidth) return;
+    const count = track.closest('.card-photo-area').querySelector('[data-role="card-photo-count"]');
+    if (!count) return;
+    const total = track.children.length;
+    const current = Math.min(total, Math.max(1, Math.round(track.scrollLeft / track.clientWidth) + 1));
+    count.textContent = `${current} / ${total}`;
   }
 
   function renderGrid() {
@@ -1712,10 +1912,59 @@
           data-id="${m.id}" data-rating="${rating}" data-action="rating"
           aria-label="${m.name} ${rating}점 주기" aria-pressed="${m.myRating === rating ? 'true' : 'false'}">★</button>
       `).join('');
-      const commentsHtml = (m.comments && m.comments.length)
-        ? m.comments.map(c => `
+      const cardPhotos = [];
+      if (m.photo) cardPhotos.push({
+        url: m.photo,
+        alt: `${m.name} 음식 사진`,
+        reviewId: '',
+        photoId: '',
+        imagePath: m.photoPath,
+        cover: true,
+        owned: false
+      });
+      (m.photos || []).forEach(photo => {
+        cardPhotos.push({
+          url: photo.url,
+          alt: `${m.name} 등록 사진`,
+          reviewId: '',
+          photoId: photo.id,
+          imagePath: photo.imagePath,
+          owned: photo.owned
+        });
+      });
+      (m.comments || []).forEach(comment => {
+        if (comment.imagePath) {
+          cardPhotos.push({
+            url: restaurantPhotoUrl(comment.imagePath),
+            alt: `${m.name} 등록 사진`,
+            reviewId: comment.id,
+            photoId: '',
+            imagePath: comment.imagePath,
+            owned: comment.owned
+          });
+        }
+      });
+      const cardPhotosHtml = cardPhotos.map(photo => `
+        <div class="card-photo-slide">
+          <img class="card-photo" src="${photo.url}" alt="${escapeHtml(photo.alt)}" loading="lazy">
+          ${photo.reviewId && photo.owned ? `
+            <button class="card-photo-delete" type="button" data-id="${m.id}" data-review-id="${photo.reviewId}" data-action="review-photo-delete" aria-label="등록 사진 삭제" title="등록 사진 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg></button>
+          ` : ''}
+          ${photo.photoId && photo.owned ? `
+            <button class="card-photo-delete" type="button" data-id="${m.id}" data-photo-id="${photo.photoId}" data-action="restaurant-photo-delete" aria-label="등록 사진 삭제" title="등록 사진 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg></button>
+          ` : ''}
+          ${photo.cover ? `
+            <button class="card-photo-delete" type="button" data-id="${m.id}" data-action="restaurant-cover-photo-delete" aria-label="첫 사진 삭제" title="첫 사진 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg></button>
+          ` : ''}
+        </div>
+      `).join('');
+      const textComments = (m.comments || []).filter(comment => comment.text?.trim());
+      const commentsHtml = textComments.length
+        ? textComments.map(c => `
           <div class="comment-item">
-            <div class="comment-copy"><b>${escapeHtml(c.author || '익명')}</b>${escapeHtml(c.text)}</div>
+            <div class="comment-copy">
+              <div><b>${escapeHtml(c.author || '익명')}</b>${escapeHtml(c.text)}</div>
+            </div>
             ${c.owned ? `
               <div class="comment-actions" aria-label="내 리뷰 관리">
                 <button class="comment-action-btn" type="button" data-id="${m.id}" data-review-id="${c.id}" data-action="comment-edit" aria-label="리뷰 수정" title="리뷰 수정">
@@ -1728,15 +1977,25 @@
             ` : ''}
           </div>
         `).join('')
-        : '<div class="comment-empty">아직 리뷰가 없어요. 먼저 남겨보세요.</div>';
+        : '<div class="comment-empty">아직 댓글이 없어요. 먼저 남겨보세요.</div>';
       card.innerHTML = `
         <div class="card-photo-area">
-          ${m.photo
-            ? `<img class="card-photo" src="${m.photo}" alt="${m.name}" loading="lazy">`
-            : '<div class="card-photo-empty">등록된 대표 사진이 없어요</div>'}
+          ${cardPhotos.length
+            ? `<div class="card-photo-track" data-role="card-photo-track">${cardPhotosHtml}</div>`
+            : '<div class="card-photo-empty">등록된 사진이 없어요</div>'}
+          ${cardPhotos.length > 1 ? `
+            <button class="card-photo-nav previous" type="button" data-id="${m.id}" data-action="card-photo-previous" aria-label="${m.name} 이전 사진">‹</button>
+            <button class="card-photo-nav next" type="button" data-id="${m.id}" data-action="card-photo-next" aria-label="${m.name} 다음 사진">›</button>
+            <span class="card-photo-count" data-role="card-photo-count">1 / ${cardPhotos.length}</span>
+          ` : ''}
           <label class="photo-upload-label">
-            📷 <span data-role="photo-upload-label">${m.photo ? '사진 변경' : '대표 사진 등록'}</span>
-            <input type="file" data-id="${m.id}" data-action="photo-upload" accept="image/jpeg,image/png,image/webp" aria-label="${m.name} 대표 사진 ${m.photo ? '변경' : '등록'}">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14.5 5 13 3h-2L9.5 5H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-5"/>
+              <circle cx="11.5" cy="12" r="3"/>
+              <path d="M19 3v6M16 6h6"/>
+            </svg>
+            <span data-role="photo-upload-label">사진 추가</span>
+            <input type="file" data-id="${m.id}" data-action="gallery-photo-upload" accept="image/jpeg,image/png,image/webp" aria-label="${m.name} 사진 추가">
           </label>
         </div>
         <div class="card-top">
@@ -1750,7 +2009,7 @@
           <div class="comment-list">${commentsHtml}</div>
           <div class="comment-form">
             <input type="text" class="name-input" data-id="${m.id}" data-role="comment-author" placeholder="이름">
-            <input type="text" data-id="${m.id}" data-role="comment-text" placeholder="리뷰 남기기">
+            <input type="text" data-id="${m.id}" data-role="comment-text" placeholder="댓글 남기기">
             <button class="comment-submit" data-id="${m.id}" data-action="comment-submit">등록</button>
           </div>
         </div>
@@ -1778,6 +2037,94 @@
     const id = btn.dataset.id;
     const m = menus.find(x => x.id === id);
     if (!m) return;
+    if (btn.dataset.action === 'card-photo-previous' || btn.dataset.action === 'card-photo-next') {
+      const track = btn.closest('.card-photo-area').querySelector('[data-role="card-photo-track"]');
+      const direction = btn.dataset.action === 'card-photo-previous' ? -1 : 1;
+      track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
+      return;
+    }
+    if (btn.dataset.action === 'restaurant-cover-photo-delete') {
+      if (!m.photoPath || !confirm('첫 번째 사진을 삭제할까요?')) return;
+
+      btn.disabled = true;
+      const { error } = await window.todayBapDb
+        .from('restaurants')
+        .update({ photo_url: null, updated_at: new Date().toISOString() })
+        .eq('id', m.id);
+      if (error) {
+        console.error('첫 사진 삭제 실패:', error);
+        alert('첫 사진을 삭제하지 못했어요. restaurants UPDATE 정책을 확인해주세요.');
+        btn.disabled = false;
+        return;
+      }
+
+      if (!/^(https?:|data:|blob:)/i.test(m.photoPath)) {
+        const { error: imageDeleteError } = await window.todayBapDb.storage
+          .from(RESTAURANT_IMAGE_BUCKET)
+          .remove([m.photoPath]);
+        if (imageDeleteError) console.warn('Storage 첫 사진 삭제 실패:', imageDeleteError);
+      }
+
+      await loadMenus();
+      renderPhotoGallery();
+      renderGrid();
+      return;
+    }
+    if (btn.dataset.action === 'review-photo-delete') {
+      const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
+      if (!review || !review.owned || !review.imagePath) return;
+      if (!confirm('이 사진을 삭제할까요?')) return;
+
+      btn.disabled = true;
+      const query = review.text?.trim()
+        ? window.todayBapDb.from('reviews').update({ image_path: null })
+        : window.todayBapDb.from('reviews').delete();
+      const { error } = await query.eq('id', review.id).eq('client_id', clientId);
+      if (error) {
+        console.error('등록 사진 삭제 실패:', error);
+        alert('사진을 삭제하지 못했어요. RLS 정책을 확인해주세요.');
+        btn.disabled = false;
+        return;
+      }
+
+      const { error: imageDeleteError } = await window.todayBapDb.storage
+        .from(RESTAURANT_IMAGE_BUCKET)
+        .remove([review.imagePath]);
+      if (imageDeleteError) console.warn('Storage 사진 삭제 실패:', imageDeleteError);
+
+      await loadMenus();
+      renderPhotoGallery();
+      renderGrid();
+      return;
+    }
+    if (btn.dataset.action === 'restaurant-photo-delete') {
+      const photo = (m.photos || []).find(item => item.id === btn.dataset.photoId);
+      if (!photo || !photo.owned) return;
+      if (!confirm('이 사진을 삭제할까요?')) return;
+
+      btn.disabled = true;
+      const { error } = await window.todayBapDb
+        .from('restaurant_photos')
+        .delete()
+        .eq('id', photo.id)
+        .eq('client_id', clientId);
+      if (error) {
+        console.error('식당 사진 삭제 실패:', error);
+        alert('사진을 삭제하지 못했어요. restaurant_photos RLS 정책을 확인해주세요.');
+        btn.disabled = false;
+        return;
+      }
+
+      const { error: imageDeleteError } = await window.todayBapDb.storage
+        .from(RESTAURANT_IMAGE_BUCKET)
+        .remove([photo.imagePath]);
+      if (imageDeleteError) console.warn('Storage 사진 삭제 실패:', imageDeleteError);
+
+      await loadMenus();
+      renderPhotoGallery();
+      renderGrid();
+      return;
+    }
     if (btn.dataset.action === 'edit') {
       openEditDialog(m);
       return;
@@ -1835,7 +2182,15 @@
         return;
       }
 
+      if (review.imagePath) {
+        const { error: imageDeleteError } = await window.todayBapDb.storage
+          .from(RESTAURANT_IMAGE_BUCKET)
+          .remove([review.imagePath]);
+        if (imageDeleteError) console.warn('리뷰 사진 삭제 실패:', imageDeleteError);
+      }
+
       await loadMenus();
+      renderPhotoGallery();
       renderGrid();
       return;
     }
@@ -1894,7 +2249,7 @@
 
       if (error) {
         console.error('리뷰 등록 실패:', error);
-        alert('리뷰 등록에 실패했어요.');
+        alert('댓글 등록에 실패했어요. RLS 정책을 확인해주세요.');
         btn.disabled = false;
         return;
       }
@@ -1911,11 +2266,24 @@
     }
   });
 
+  grid.addEventListener('scroll', (e) => {
+    if (e.target.dataset.role === 'card-photo-track') updateCardPhotoCount(e.target);
+  }, true);
+
+  previousPhotoBtn.addEventListener('click', () => {
+    photoGallery.scrollBy({ left: -Math.max(142, photoGallery.clientWidth * 0.8), behavior: 'smooth' });
+  });
+  nextPhotoBtn.addEventListener('click', () => {
+    photoGallery.scrollBy({ left: Math.max(142, photoGallery.clientWidth * 0.8), behavior: 'smooth' });
+  });
+  photoGallery.addEventListener('scroll', updatePhotoGalleryNavigation, { passive: true });
+  window.addEventListener('resize', updatePhotoGalleryNavigation);
+
   grid.addEventListener('change', async (e) => {
-    const photoInput = e.target.closest('[data-action="photo-upload"]');
+    const photoInput = e.target.closest('[data-action="gallery-photo-upload"]');
     if (photoInput) {
       const menu = menus.find(x => x.id === photoInput.dataset.id);
-      if (menu) await uploadRestaurantPhoto(photoInput, menu);
+      if (menu) await uploadRestaurantGalleryPhoto(photoInput, menu);
       return;
     }
 
