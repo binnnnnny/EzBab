@@ -987,6 +987,13 @@
     gap: 8px;
   }
 
+  .card-tag-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
   .card-edit-btn {
     border: 1px solid var(--line);
     background: var(--surface);
@@ -1013,6 +1020,40 @@
     border-radius: var(--radius-sm);
   }
 
+  .new-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+  .card-photo-area > .new-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  padding: 4px 8px;
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  background: #FF5A36;
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(38, 32, 25, 0.2);
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
   .card-name {
     font-size: 17px;
     font-weight: 800;
@@ -1493,6 +1534,7 @@
   const RESTAURANT_IMAGE_BUCKET = 'restaurant-images';
   const MAX_SOURCE_IMAGE_BYTES = 10 * 1024 * 1024;
   const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024;
+  const NEW_BADGE_DURATION_MS = 24 * 60 * 60 * 1000;
   const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
   const CATEGORY_EMOJI = {
@@ -1527,6 +1569,7 @@
   let restaurantMap = null;
   let restaurantMarkers = [];
   let lastGeocodeRequestAt = 0;
+  let newBadgeTimer = null;
 
   function getClientId() {
     let clientId = localStorage.getItem(CLIENT_ID_KEY);
@@ -1955,6 +1998,7 @@
         photo: restaurantPhotoUrl(m.photo_url),
         photoPath: m.photo_url || '',
         createdBy: m.created_by || '',
+        createdAt: m.created_at || '',
         excluded: Boolean(local.excluded),
         upVotes: voteStatsByRestaurant.get(m.id)?.up || 0,
         downVotes: voteStatsByRestaurant.get(m.id)?.down || 0,
@@ -2180,6 +2224,25 @@
     return list;
   }
 
+  function isNewRestaurant(menu, now = Date.now()) {
+    const createdTime = new Date(menu.createdAt).getTime();
+    return Number.isFinite(createdTime)
+      && createdTime <= now
+      && now - createdTime < NEW_BADGE_DURATION_MS;
+  }
+
+  function scheduleNewBadgeRefresh() {
+    if (newBadgeTimer) clearTimeout(newBadgeTimer);
+    const now = Date.now();
+    const nextExpiry = Math.min(...menus
+      .map(menu => new Date(menu.createdAt).getTime() + NEW_BADGE_DURATION_MS)
+      .filter(expiry => Number.isFinite(expiry) && expiry > now));
+
+    if (Number.isFinite(nextExpiry)) {
+      newBadgeTimer = setTimeout(renderGrid, Math.max(1000, nextExpiry - now + 100));
+    }
+  }
+
   function renderPhotoGallery() {
     if (!photoGallery) return;
     const photos = [];
@@ -2246,12 +2309,14 @@
 
   function renderGrid() {
     const list = filteredSortedMenus();
+    scheduleNewBadgeRefresh();
     grid.innerHTML = '';
     if (list.length === 0) {
       grid.innerHTML = '<div class="empty-state">조건에 맞는 곳이 없어요. 필터를 바꿔보세요.</div>';
       return;
     }
     list.forEach(m => {
+      const showNewBadge = isNewRestaurant(m);
       const card = document.createElement('div');
       card.className = 'card' + (m.excluded ? ' excluded' : '');
       const cardPhotos = [];
@@ -2347,10 +2412,13 @@
         commentsHtml = '<div class="comment-empty">아직 댓글이 없어요. 먼저 남겨보세요.</div>';
       }
       card.innerHTML = `
-        <div class="card-photo-area">
-          ${cardPhotos.length
-            ? `<div class="card-photo-track" data-role="card-photo-track">${cardPhotosHtml}</div>`
-            : '<div class="card-photo-empty">등록된 사진이 없어요</div>'}
+      <div class="card-photo-area">
+        ${showNewBadge ? '<span class="new-badge">NEW</span>' : ''}
+
+    ${cardPhotos.length
+      ? `<div class="card-photo-track" data-role="card-photo-track">${cardPhotosHtml}</div>`
+      : '<div class="card-photo-empty">등록된 사진이 없어요</div>'}
+
           ${cardPhotos.length > 1 ? `
             <button class="card-photo-nav previous" type="button" data-id="${m.id}" data-action="card-photo-previous" aria-label="${m.name} 이전 사진">‹</button>
             <button class="card-photo-nav next" type="button" data-id="${m.id}" data-action="card-photo-next" aria-label="${m.name} 다음 사진">›</button>
@@ -2367,8 +2435,13 @@
           </label>
         </div>
         <div class="card-top">
-          <span class="tag">${CATEGORY_EMOJI[m.category] || ''} ${m.category}</span>
-          <button class="card-edit-btn" data-id="${m.id}" data-action="edit" type="button">✏️ 수정</button>
+          <div class="card-tag-group">
+            <span class="tag">${CATEGORY_EMOJI[m.category] || ''} ${m.category}</span>
+          </div>
+
+          <button class="card-edit-btn" data-id="${m.id}" data-action="edit" type="button">
+            ✏️ 수정
+          </button>
         </div>
         <h3 class="card-name">${m.name}</h3>
         ${m.address ? `<div class="card-address">${m.address}</div>` : ''}
