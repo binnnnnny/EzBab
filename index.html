@@ -1700,7 +1700,14 @@
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_z-aaM1TaFemU2DLR-_OfEA_AMRlQXDU';
   window.todayBapDb = window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    }
   );
 </script>
 
@@ -3311,9 +3318,16 @@
 
   worldcupSizeSelect.addEventListener('change', (e) => {
     const selectedSize = parseInt(e.target.value);
+    
+    let thisWeekNames = new Set();
+    if (excludeTodayToggle.checked) {
+      thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+    }
+    
     const validMenus = Array.from(menus.values()).filter(m => {
       // 뽑기와 동일한 제외 조건
-      if (excludeTodayToggle.checked && recentlyEaten.has(m.name)) return false;
+      if (m.excluded) return false;
+      if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
       return true;
     });
     
@@ -3335,8 +3349,15 @@
 
   startWorldcupBtn.addEventListener('click', () => {
     let size = parseInt(worldcupSizeSelect.value);
+    
+    let thisWeekNames = new Set();
+    if (excludeTodayToggle.checked) {
+      thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+    }
+
     let validMenus = Array.from(menus.values()).filter(m => {
-      if (excludeTodayToggle.checked && recentlyEaten.has(m.name)) return false;
+      if (m.excluded) return false;
+      if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
       return true;
     });
     
@@ -3400,9 +3421,15 @@
   }
 
   function handleWorldcupChoice(winnerMenu) {
+    worldcupCardA.onclick = null;
+    worldcupCardB.onclick = null;
     nextRoundMenus.push(winnerMenu);
-    currentMatchIndex += 2;
-    renderWorldcupMatch();
+    
+    // 부드러운 화면 전환을 위해 약간의 지연(150ms) 추가
+    setTimeout(() => {
+      currentMatchIndex += 2;
+      renderWorldcupMatch();
+    }, 150);
   }
 
   function renderWorldcupWinner(winner) {
