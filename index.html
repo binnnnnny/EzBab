@@ -1373,7 +1373,8 @@
 
   /* Worldcup Play Dialog */
   .worldcup-dialog {
-    max-width: 500px;
+    max-width: 1000px;
+    width: 90vw;
     background: var(--surface);
     border: none;
     border-radius: var(--radius-lg);
@@ -1411,14 +1412,14 @@
     background: var(--bg);
     border: 2px solid var(--line);
     border-radius: var(--radius-md);
-    padding: 16px;
+    padding: 24px;
     cursor: pointer;
     transition: transform 0.15s ease, border-color 0.15s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 160px;
+    min-height: 320px;
   }
   .worldcup-card:hover {
     transform: translateY(-4px);
@@ -1426,16 +1427,16 @@
     background: var(--primary-tint);
   }
   .worldcup-card .card-name {
-    margin: 8px 0 4px;
-    font-size: 18px;
-    font-weight: 700;
+    margin: 12px 0 6px;
+    font-size: 28px;
+    font-weight: 800;
   }
   .worldcup-vs {
     display: flex;
     align-items: center;
     font-weight: 900;
     color: var(--primary);
-    font-size: 20px;
+    font-size: 32px;
     font-style: italic;
   }
   .worldcup-winner-area {
@@ -3420,13 +3421,13 @@
     }
 
     const photoHtml = photoUrl 
-      ? `<img src="${photoUrl}" alt="" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;">` 
-      : `<div style="font-size:40px; margin-bottom:8px;">${CATEGORY_EMOJI[menu.category] || '🍽️'}</div>`;
+      ? `<img src="${photoUrl}" alt="" style="width:100%; height:240px; object-fit:cover; border-radius:12px; margin-bottom:12px;">` 
+      : `<div style="font-size:80px; margin-bottom:12px;">${CATEGORY_EMOJI[menu.category] || '🍽️'}</div>`;
       
     return `
       ${photoHtml}
       <div class="card-name">${escapeHtml(menu.name)}</div>
-      <div style="font-size:12px; color:var(--ink-3);">${escapeHtml(menu.category)}</div>
+      <div style="font-size:16px; color:var(--ink-3);">${escapeHtml(menu.category)}</div>
     `;
   }
 
