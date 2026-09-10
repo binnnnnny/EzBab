@@ -1325,6 +1325,135 @@
     font-family: inherit;
     padding: 0;
   }
+
+  /* Shortcuts Section */
+  .shortcuts-section {
+    margin: 20px 0;
+    padding: 0;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .shortcuts-section::-webkit-scrollbar { display: none; }
+
+  .shortcut-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  .shortcut-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 1px solid var(--line);
+    transition: transform 0.1s ease;
+  }
+  .shortcut-btn:hover .shortcut-icon {
+    transform: scale(1.05);
+  }
+  
+  .shortcut-label {
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Worldcup Play Dialog */
+  .worldcup-dialog {
+    max-width: 1000px;
+    width: 90vw;
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .worldcup-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  .worldcup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .worldcup-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .worldcup-content {
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .worldcup-battle {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .worldcup-card {
+    flex: 1;
+    background: var(--bg);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+  }
+  .worldcup-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    background: var(--primary-tint);
+  }
+  .worldcup-card .card-name {
+    margin: 12px 0 6px;
+    font-size: 28px;
+    font-weight: 800;
+  }
+  .worldcup-vs {
+    display: flex;
+    align-items: center;
+    font-weight: 900;
+    color: var(--primary);
+    font-size: 32px;
+    font-style: italic;
+  }
+  .worldcup-winner-area {
+    margin-top: 20px;
+    display: none;
+  }
+  .worldcup-winner-area.show {
+    display: block;
+    animation: pop 0.5s ease;
+  }
+  .worldcup-winner-card {
+    border: 3px solid var(--primary);
+    background: var(--primary-tint);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+  }
 </style>
 </head>
 <body>
@@ -1366,6 +1495,13 @@
       <div class="calendar-grid" id="calendarGrid"></div>
     </div>
     <p class="history-status" id="historyStatus" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="shortcuts-section" aria-label="빠른 메뉴">
+    <button class="shortcut-btn" id="worldcupShortcutBtn">
+      <div class="shortcut-icon">🏆</div>
+      <span class="shortcut-label">점심월드컵</span>
+    </button>
   </section>
 
   <section class="gallery-section">
@@ -1514,6 +1650,48 @@
   </form>
 </dialog>
 
+<!-- Worldcup Setup Dialog -->
+<dialog class="dialog" id="worldcupSetupDialog">
+  <div class="dialog-content">
+    <h2>🔥 점심 메뉴 월드컵</h2>
+    <p>토너먼트에 참가할 식당 수를 선택하세요.</p>
+    <div class="form-group" style="margin-top: 15px;">
+      <select id="worldcupSizeSelect" class="form-control">
+        <option value="8">8강</option>
+        <option value="16">16강</option>
+        <option value="32">32강</option>
+        <option value="64">64강</option>
+        <option value="128">128강</option>
+        <option value="256">256강</option>
+      </select>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" id="cancelWorldcupSetup">취소</button>
+      <button class="btn btn-primary" id="startWorldcupBtn">시작하기</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Worldcup Play Dialog -->
+<dialog class="dialog worldcup-dialog" id="worldcupPlayDialog">
+  <div class="worldcup-header">
+    <h2 id="worldcupRoundText">16강 (1/8)</h2>
+    <button class="dialog-close" id="closeWorldcupPlay">×</button>
+  </div>
+  <div class="worldcup-content">
+    <div class="worldcup-battle" id="worldcupBattleArea">
+      <div class="worldcup-card" id="worldcupCardA"></div>
+      <div class="worldcup-vs">VS</div>
+      <div class="worldcup-card" id="worldcupCardB"></div>
+    </div>
+    <div class="worldcup-winner-area" id="worldcupWinnerArea">
+      <h3>🎉 우승 메뉴 🎉</h3>
+      <div class="worldcup-winner-card" id="worldcupWinnerCard"></div>
+      <button class="btn btn-primary" id="worldcupRecordBtn" style="width: 100%;">오늘의 점심으로 확정 기록하기</button>
+    </div>
+  </div>
+</dialog>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
 <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.3/leaflet-maplibre-gl.js"></script>
@@ -1523,7 +1701,14 @@
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_z-aaM1TaFemU2DLR-_OfEA_AMRlQXDU';
   window.todayBapDb = window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    }
   );
 </script>
 
@@ -1619,6 +1804,27 @@
   const mealRecordDialogTitle = document.getElementById('mealRecordDialogTitle');
   const mealRecordStatus = document.getElementById('mealRecordStatus');
   const mealRecordSubmitBtn = document.getElementById('mealRecordSubmitBtn');
+
+  // Worldcup Elements
+  const worldcupShortcutBtn = document.getElementById('worldcupShortcutBtn');
+  const worldcupSetupDialog = document.getElementById('worldcupSetupDialog');
+  const worldcupSizeSelect = document.getElementById('worldcupSizeSelect');
+  const cancelWorldcupSetup = document.getElementById('cancelWorldcupSetup');
+  const startWorldcupBtn = document.getElementById('startWorldcupBtn');
+  const worldcupPlayDialog = document.getElementById('worldcupPlayDialog');
+  const closeWorldcupPlay = document.getElementById('closeWorldcupPlay');
+  const worldcupRoundText = document.getElementById('worldcupRoundText');
+  const worldcupBattleArea = document.getElementById('worldcupBattleArea');
+  const worldcupCardA = document.getElementById('worldcupCardA');
+  const worldcupCardB = document.getElementById('worldcupCardB');
+  const worldcupWinnerArea = document.getElementById('worldcupWinnerArea');
+  const worldcupWinnerCard = document.getElementById('worldcupWinnerCard');
+  const worldcupRecordBtn = document.getElementById('worldcupRecordBtn');
+  
+  let worldcupMenus = [];
+  let currentRoundMenus = [];
+  let nextRoundMenus = [];
+  let currentMatchIndex = 0;
 
   function resetRestaurantDialogToAddMode() {
     editingId = null;
@@ -3104,6 +3310,164 @@
       confirmBtn.disabled = false;
     }
   });
+
+  // --- Worldcup Logic ---
+  worldcupShortcutBtn.addEventListener('click', () => {
+    worldcupSizeSelect.value = '8';
+    worldcupSetupDialog.showModal();
+  });
+
+  worldcupSizeSelect.addEventListener('change', (e) => {
+    const selectedSize = parseInt(e.target.value);
+    
+    let thisWeekNames = new Set();
+    if (excludeTodayToggle.checked) {
+      thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+    }
+    
+    const validMenus = Array.from(menus.values()).filter(m => {
+      // 뽑기와 동일한 제외 조건
+      if (m.excluded) return false;
+      if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
+      return true;
+    });
+    
+    if (selectedSize > validMenus.length) {
+      alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${selectedSize}강을 진행할 수 없습니다!`);
+      let fallback = 8;
+      for (let s of [8, 16, 32, 64, 128, 256]) {
+        if (s <= validMenus.length) fallback = s;
+      }
+      if (validMenus.length < 8) {
+        alert("식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!");
+      }
+      e.target.value = fallback.toString();
+    }
+  });
+
+  cancelWorldcupSetup.addEventListener('click', () => worldcupSetupDialog.close());
+  closeWorldcupPlay.addEventListener('click', () => worldcupPlayDialog.close());
+
+  startWorldcupBtn.addEventListener('click', () => {
+    let size = parseInt(worldcupSizeSelect.value);
+    
+    let thisWeekNames = new Set();
+    if (excludeTodayToggle.checked) {
+      thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+    }
+
+    let validMenus = Array.from(menus.values()).filter(m => {
+      if (m.excluded) return false;
+      if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
+      return true;
+    });
+    
+    if (size > validMenus.length) {
+      alert("식당 수가 부족합니다.");
+      return;
+    }
+    
+    validMenus.sort(() => Math.random() - 0.5);
+    worldcupMenus = validMenus.slice(0, size);
+    
+    currentRoundMenus = [...worldcupMenus];
+    nextRoundMenus = [];
+    currentMatchIndex = 0;
+    
+    worldcupSetupDialog.close();
+    
+    worldcupBattleArea.style.display = 'flex';
+    worldcupWinnerArea.classList.remove('show');
+    
+    renderWorldcupMatch();
+    worldcupPlayDialog.showModal();
+  });
+
+  function renderWorldcupMatch() {
+    if (currentMatchIndex >= currentRoundMenus.length) {
+      currentRoundMenus = [...nextRoundMenus];
+      nextRoundMenus = [];
+      currentMatchIndex = 0;
+      
+      if (currentRoundMenus.length === 1) {
+        renderWorldcupWinner(currentRoundMenus[0]);
+        return;
+      }
+    }
+    
+    const menuA = currentRoundMenus[currentMatchIndex];
+    const menuB = currentRoundMenus[currentMatchIndex + 1];
+    
+    const roundTotal = currentRoundMenus.length;
+    const roundName = roundTotal === 2 ? '결승' : `${roundTotal}강`;
+    const matchNumber = Math.floor(currentMatchIndex / 2) + 1;
+    worldcupRoundText.textContent = `${roundName} (${matchNumber}/${roundTotal/2})`;
+    
+    worldcupCardA.innerHTML = renderWorldcupCardInner(menuA);
+    worldcupCardB.innerHTML = renderWorldcupCardInner(menuB);
+    
+    worldcupCardA.onclick = () => handleWorldcupChoice(menuA);
+    worldcupCardB.onclick = () => handleWorldcupChoice(menuB);
+  }
+
+  function renderWorldcupCardInner(menu) {
+    let photoUrl = '';
+    if (menu.photo) {
+      photoUrl = menu.photo;
+    } else if (menu.photos && menu.photos.length > 0) {
+      photoUrl = menu.photos[0].url;
+    } else if (menu.comments && menu.comments.find(c => c.imagePath)) {
+      photoUrl = restaurantPhotoUrl(menu.comments.find(c => c.imagePath).imagePath);
+    }
+
+    const photoHtml = photoUrl 
+      ? `<img src="${photoUrl}" alt="" style="width:100%; height:240px; object-fit:cover; border-radius:12px; margin-bottom:12px;">` 
+      : `<div style="font-size:80px; margin-bottom:12px;">${CATEGORY_EMOJI[menu.category] || '🍽️'}</div>`;
+      
+    return `
+      ${photoHtml}
+      <div class="card-name">${escapeHtml(menu.name)}</div>
+      <div style="font-size:16px; color:var(--ink-3);">${escapeHtml(menu.category)}</div>
+    `;
+  }
+
+  function handleWorldcupChoice(winnerMenu) {
+    worldcupCardA.onclick = null;
+    worldcupCardB.onclick = null;
+    nextRoundMenus.push(winnerMenu);
+    
+    // 부드러운 화면 전환을 위해 약간의 지연(150ms) 추가
+    setTimeout(() => {
+      currentMatchIndex += 2;
+      renderWorldcupMatch();
+    }, 150);
+  }
+
+  function renderWorldcupWinner(winner) {
+    worldcupRoundText.textContent = "🏆 최종 우승 🏆";
+    worldcupBattleArea.style.display = 'none';
+    
+    worldcupWinnerCard.innerHTML = renderWorldcupCardInner(winner);
+    worldcupWinnerArea.classList.add('show');
+    
+    worldcupRecordBtn.onclick = async () => {
+      worldcupRecordBtn.disabled = true;
+      worldcupRecordBtn.textContent = '기록 중...';
+      try {
+        await saveHistory(winner);
+        await loadHistory();
+        renderWeekStrip();
+        renderCalendar();
+        alert(`${winner.name}이(가) 오늘 점심으로 확정되었습니다!`);
+        worldcupPlayDialog.close();
+      } catch (error) {
+        alert('기록 중 오류가 발생했습니다.');
+      } finally {
+        worldcupRecordBtn.disabled = false;
+        worldcupRecordBtn.textContent = '오늘의 점심으로 확정 기록하기';
+      }
+    };
+  }
 
   async function init() {
     pickerText.textContent = '불러오는 중…';
