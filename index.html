@@ -1,1136 +1,2578 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이지테이블</title>
+<link rel="icon" href="./favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="./favicon-96x96.png" sizes="96x96">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
+<link
+  href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
+  rel="stylesheet"
+>
+<style>
+  :root{
+    --bg: #FFF8F3;
+    --surface: #FFFFFF;
+    --ink: #262019;
+    --ink-2: #7A6F63;
+    --ink-3: #ABA095;
+    --line: #F0E4D8;
+    --primary: #FF5A36;
+    --primary-strong: #E8431F;
+    --primary-tint: #FFEBE3;
+    --accent: #262019;
+    --accent-tint: #FFF1E8;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 16px rgba(120, 80, 40, 0.07);
+    --shadow-strong: 0 6px 20px rgba(255, 90, 54, 0.28);
+  }
 
-  <title>이지테이블</title>
+  * { box-sizing: border-box; }
 
-  <link rel="icon" href="./favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="./favicon-96x96.png" sizes="96x96">
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"
-    crossorigin
-  >
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin
-  >
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 4px;
+  }
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
-  >
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--ink);
+  }
 
-  <!-- 이지테이블 CSS는 가장 마지막 -->
-  <link rel="stylesheet" href="./style.css">
+  .brand .dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex: 0 0 30px;
+  }
+
+  .brand .dot img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .brand small {
+    font-weight: 500;
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 28px 4px 8px;
+  }
+
+  .hero h1 {
+    font-size: 27px;
+    line-height: 1.42;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.4px;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--ink-2);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* Picker card */
+  .picker-card {
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 28px 22px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+
+  .picker-display {
+    font-size: 26px;
+    font-weight: 700;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--ink);
+    transition: transform 0.08s ease;
+  }
+
+  .picker-display.rolling {
+    color: var(--primary);
+  }
+
+  .picker-display.landed {
+    color: var(--accent);
+    animation: pop 0.42s ease;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.85); opacity: 0.3; }
+    60% { transform: scale(1.08); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .picker-sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ink-3);
+    min-height: 18px;
+  }
+
+  .picker-controls {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 18px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .picker-controls label {
+    font-size: 13px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .picker-controls input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+  }
+
+  .pick-btn {
+    margin-top: 14px;
+    width: 100%;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 16px 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: var(--shadow-strong);
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+
+  .pick-btn:active { transform: scale(0.98); }
+  .pick-btn:hover { background: var(--primary-strong); }
+
+  .confirm-btn {
+    margin-top: 10px;
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: none;
+  }
+
+  .confirm-btn:active { transform: scale(0.98); }
+
+  /* Shared lunch history */
+  .meal-history {
+    margin-top: 22px;
+  }
+
+  .history-tabs {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+
+  .history-tab {
+    border: none;
+    border-radius: 7px;
+    padding: 7px 12px;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .history-tab.active {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .history-panel[hidden] { display: none; }
+
+  .week-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .week-day {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 12px 6px;
+    text-align: center;
+    border: 1px solid var(--line);
+    width: 100%;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .week-day:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+
+  .week-day:focus-visible {
+    outline: 3px solid var(--primary-tint);
+    outline-offset: 2px;
+    border-color: var(--primary);
+  }
+
+  .week-day.today {
+    border-color: var(--primary);
+    background: var(--primary-tint);
+  }
+
+  .week-day .label {
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+
+  .week-day .value {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    word-break: keep-all;
+    min-height: 18px;
+  }
+
+  .week-day .value.empty {
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  .calendar-panel {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .calendar-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .calendar-nav {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 17px;
+    cursor: pointer;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .calendar-weekday {
+    padding: 4px 0;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .calendar-day {
+    min-height: 70px;
+    padding: 7px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .calendar-day.blank { visibility: hidden; }
+  .calendar-day.today { border-color: var(--primary); background: var(--primary-tint); }
+  .calendar-date { color: var(--ink-3); font-size: 11.5px; font-weight: 700; }
+
+  .calendar-meal {
+    display: block;
+    margin-top: 6px;
+    padding: 4px 5px;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .history-status {
+    min-height: 18px;
+    margin: 8px 2px 0;
+    color: var(--ink-3);
+    font-size: 12px;
+  }
+
+  @media (max-width: 480px) {
+    .calendar-panel { padding: 10px; }
+    .calendar-grid { gap: 3px; }
+    .calendar-day { min-height: 54px; padding: 5px 4px; }
+    .calendar-meal {
+      padding: 3px;
+      font-size: 10.5px;
+      white-space: nowrap;
+    }
+  }
+
+  /* Curation section */
+  .curation {
+    margin-top: 44px;
+  }
+
+  .curation-header h2 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  .curation-header p {
+    font-size: 13px;
+    color: var(--ink-3);
+    margin: 0 0 16px;
+  }
+
+  .curation-heading-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .curation-heading-row .curation-header p { margin-bottom: 0; }
+
+  .restaurant-add-btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    background: var(--ink);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .restaurant-add-btn:hover { background: var(--primary-strong); }
+
+  .restaurant-dialog {
+    width: min(520px, calc(100% - 28px));
+    max-height: calc(100vh - 40px);
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 24px 70px rgba(38, 32, 25, 0.24);
+  }
+
+  .restaurant-dialog::backdrop {
+    background: rgba(38, 32, 25, 0.48);
+    backdrop-filter: blur(3px);
+  }
+
+  .meal-record-dialog { width: min(420px, calc(100% - 28px)); }
+
+  .restaurant-form { padding: 22px; }
+
+  .restaurant-form-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .restaurant-form-header h2 { margin: 0 0 4px; font-size: 20px; }
+  .restaurant-form-header p { margin: 0; color: var(--ink-3); font-size: 13px; }
+
+  .dialog-close-btn {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .restaurant-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .restaurant-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .restaurant-field.full { grid-column: 1 / -1; }
+  .restaurant-field label { font-size: 14px; font-weight: 700; }
+  .restaurant-field .optional { color: var(--ink-3); font-size: 12px; font-weight: 500; }
+
+  .restaurant-field input,
+  .restaurant-field select,
+  .restaurant-field textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 11px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .restaurant-field textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
+  .restaurant-field input:focus,
+  .restaurant-field select:focus,
+  .restaurant-field textarea:focus { outline: none; border-color: var(--primary); }
+  .restaurant-field small { color: var(--ink-3); font-size: 12px; line-height: 1.45; }
+
+  .address-search-row { display: flex; gap: 7px; }
+  .address-search-row input { flex: 1; min-width: 0; }
+
+  .address-search-btn {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0 12px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .address-search-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .address-search-btn:disabled { opacity: 0.6; cursor: wait; }
+  .restaurant-location-status { min-height: 17px; color: var(--ink-3); font-size: 12px; }
+
+  .restaurant-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .restaurant-form-actions button {
+    border-radius: var(--radius-sm);
+    padding: 10px 15px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .restaurant-cancel-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); }
+  .restaurant-submit-btn { border: none; background: var(--primary); color: #fff; }
+  .restaurant-submit-btn:disabled { opacity: 0.65; cursor: wait; }
+  .restaurant-form-status { min-height: 18px; margin: 12px 0 0; color: var(--primary-strong); font-size: 13px; }
+
+  @media (max-width: 480px) {
+    .curation-heading-row { align-items: center; }
+    .restaurant-form-grid { grid-template-columns: 1fr; }
+    .restaurant-field.full { grid-column: auto; }
+    .restaurant-form { padding: 18px; }
+    .restaurant-map-frame,
+    .restaurant-map { height: 290px; min-height: 290px; }
+    .address-search-row { align-items: stretch; }
+    .address-search-btn { padding: 0 10px; }
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-chip b { color: var(--ink); font-weight: 700; }
+
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .search-row input[type="text"] {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+  }
+
+  .search-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .search-row select {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 11px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink-2);
+  }
+
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .restaurant-map-section {
+    margin-bottom: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .restaurant-map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .restaurant-map-header h3 { margin: 0; font-size: 15px; }
+  .restaurant-map-header p { margin: 2px 0 0; color: var(--ink-3); font-size: 12.5px; }
+
+  .restaurant-map-count {
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--primary-tint);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .restaurant-map-frame {
+    position: relative;
+    min-height: 330px;
+    background: #EEEAE5;
+  }
+
+  .restaurant-map { width: 100%; height: 330px; }
+
+  .restaurant-map-message {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: linear-gradient(135deg, #F8F3ED, #EEE7DF);
+    color: var(--ink-2);
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .restaurant-map-message[hidden] { display: none; }
+
+  .map-marker {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 3px solid #fff;
+    border-radius: 50% 50% 50% 12px;
+    background: var(--primary);
+    box-shadow: 0 4px 12px rgba(38, 32, 25, 0.3);
+    color: #fff;
+    font-size: 15px;
+    transform: rotate(-45deg);
+  }
+
+  .map-marker span { transform: rotate(45deg); }
+  .map-marker.selected { width: 38px; height: 38px; background: var(--ink); }
+  .restaurant-map-div-icon { border: none; background: transparent; }
+
+  .map-selection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 15px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 13px;
+  }
+
+  .map-selection[hidden] { display: none; }
+  .map-selection b { color: var(--ink); font-size: 14px; }
+  .map-selection-votes { white-space: nowrap; font-weight: 700; }
+
+  /* Photo gallery */
+  .gallery-section {
+    margin-top: 36px;
+  }
+
+  .photo-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .photo-gallery::-webkit-scrollbar { display: none; }
+
+  .photo-gallery-shell { position: relative; }
+
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    transform: translateY(-50%);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .gallery-nav.previous { left: -12px; }
+  .gallery-nav.next { right: -12px; }
+  .gallery-nav:disabled { display: none; }
+
+  .photo-card {
+    flex: 0 0 132px;
+    scroll-snap-align: start;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .photo-card img {
+    width: 132px;
+    height: 132px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .photo-card-caption {
+    padding: 8px 10px 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .photo-card-caption span.cat-emoji {
+    font-size: 13px;
+  }
+
+  /* Grid of restaurant cards */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s ease;
+    overflow: hidden;
+  }
+
+  .card.excluded {
+    opacity: 0.5;
+  }
+
+  .card-photo-area {
+    width: calc(100% + 32px);
+    margin: -16px -16px 0;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    overflow: hidden;
+    background: var(--primary-tint);
+  }
+
+  .card-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-photo-track {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .card-photo-track::-webkit-scrollbar { display: none; }
+
+  .card-photo-slide {
+    position: relative;
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: start;
+  }
+
+  .card-photo-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    transform: translateY(-50%);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 50%;
+    background: rgba(30, 25, 22, 0.62);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .card-photo-nav.previous { left: 8px; }
+  .card-photo-nav.next { right: 8px; }
+
+  .card-photo-count {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(30, 25, 22, 0.66);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .card-photo-delete {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 50%;
+    background: rgba(30, 25, 22, 0.72);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .card-photo-delete svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+    margin: auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .card-photo-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .photo-upload-label {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 999px;
+    background: rgba(30, 25, 22, 0.86);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
+  }
+
+  .photo-upload-label svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .photo-upload-label:hover { background: rgba(30, 25, 22, 0.9); }
+  .photo-upload-label.is-uploading { opacity: 0.7; cursor: wait; }
+  .photo-upload-label input { display: none; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .card-tag-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .card-edit-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .card-edit-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--primary-tint);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .new-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+  .card-photo-area > .new-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  padding: 4px 8px;
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  background: #FF5A36;
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(38, 32, 25, 0.2);
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
+  .card-name {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .card-address {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    margin-top: -6px;
+  }
+
+  .card-review {
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .card-review.missing {
+    color: var(--ink-3);
+    font-style: italic;
+  }
+
+  .comment-section {
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 90px;
+    overflow-y: auto;
+    margin-bottom: 6px;
+  }
+
+  .comment-item {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 0;
+  }
+
+  .comment-copy {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .comment-copy b {
+    color: var(--ink);
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  .comment-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .comment-action-btn {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-3);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .comment-action-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+  }
+
+  .comment-action-btn:hover {
+    color: var(--primary);
+    border-color: var(--line);
+    background: var(--primary-tint);
+  }
+
+  .comment-action-btn.delete:hover { color: #c13d2a; background: #fff1ee; }
+
+  /* 대댓글 스타일 추가 */
+  .comment-item.is-reply {
+    margin-left: 20px;
+    position: relative;
+    padding-left: 10px;
+  }
+  .comment-item.is-reply::before {
+    content: "↳";
+    position: absolute;
+    left: -4px;
+    top: 2px;
+    color: var(--ink-3);
+    font-size: 14px;
+  }
+  .comment-reply-btn {
+    font-size: 11px;
+    background: transparent;
+    border: none;
+    color: var(--ink-3);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+  .comment-reply-btn:hover {
+    background: var(--line);
+    color: var(--ink);
+  }
+  .comment-action-btn:disabled { opacity: 0.5; cursor: wait; }
+
+  .comment-empty {
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+
+  .comment-form {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .comment-form input[type="text"].name-input {
+    width: 52px;
+    flex-shrink: 0;
+  }
+
+  .comment-form input[data-role="comment-text"] { flex: 1 1 auto; }
+
+  .comment-form input[type="text"] {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-size: 11.5px;
+    font-family: inherit;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  .comment-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .comment-submit {
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
+  .like-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .like-btn:active { transform: scale(0.96); }
+
+  .like-btn.liked {
+    background: var(--primary-tint);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .like-btn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .vote-control { display: inline-flex; align-items: center; gap: 5px; }
+
+  .vote-btn {
+    min-width: 54px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  }
+
+  .vote-btn:hover { border-color: var(--primary); transform: translateY(-1px); }
+  .vote-btn.up.selected { border-color: var(--primary); background: var(--primary-tint); color: var(--primary); }
+  .vote-btn.down.selected { border-color: #8A8178; background: #F1EFEC; color: #5F5750; }
+  .vote-btn:disabled { cursor: wait; opacity: 0.6; }
+
+  .pool-toggle {
+    font-size: 11.5px;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .pool-toggle input {
+    accent-color: var(--primary);
+    width: 14px;
+    height: 14px;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0;
+    color: var(--ink-3);
+    font-size: 14px;
+  }
+
+  footer {
+    margin-top: 50px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.8;
+  }
+
+  footer button.reset-link {
+    background: none;
+    border: none;
+    color: var(--ink-3);
+    text-decoration: underline;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+  }
+
+  /* Shortcuts Section */
+  .shortcuts-section {
+    margin: 20px 0;
+    padding: 0;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .shortcuts-section::-webkit-scrollbar { display: none; }
+
+  .shortcut-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  .shortcut-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 1px solid var(--line);
+    transition: transform 0.1s ease;
+  }
+  .shortcut-btn:hover .shortcut-icon {
+    transform: scale(1.05);
+  }
+  
+  .shortcut-label {
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Worldcup Play Dialog */
+  .worldcup-dialog {
+    max-width: 1000px;
+    width: 90vw;
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .worldcup-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  .worldcup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .worldcup-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .worldcup-content {
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .worldcup-battle {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .worldcup-card {
+    flex: 1;
+    background: var(--bg);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+  }
+  .worldcup-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    background: var(--primary-tint);
+  }
+  .worldcup-card .card-name {
+    margin: 12px 0 6px;
+    font-size: 28px;
+    font-weight: 800;
+  }
+  .worldcup-vs {
+    display: flex;
+    align-items: center;
+    font-weight: 900;
+    color: var(--primary);
+    font-size: 32px;
+    font-style: italic;
+  }
+  .worldcup-winner-area {
+    margin-top: 20px;
+    display: none;
+  }
+  .worldcup-winner-area.show {
+    display: block;
+    animation: pop 0.5s ease;
+  }
+  .worldcup-winner-card {
+    border: 3px solid var(--primary);
+    background: var(--primary-tint);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+  }
+</style>
 </head>
+
 <body>
-<div class="page">
+  <div class="page">
 
-  <header class="top">
-    <div class="brand"><span class="dot"><img src="./favicon-96x96.png" alt=""></span>이지테이블</div>
-  </header>
+    <header class="top">
+      <div class="brand"><span class="dot"><img src="./favicon-96x96.png" alt=""></span>이지테이블</div>
+    </header>
 
-  <section class="hero">
-    <h1>오늘 점심,<br>뭐 먹을지 골라볼까요?</h1>
-    <p>우리 팀이 직접 가보고 남긴 기록으로 만든 점심 큐레이션이에요.</p>
-  </section>
-
-  <section class="picker-card">
-    <div class="picker-display" id="pickerDisplay"><span id="pickerEmoji"></span><span id="pickerText">눌러서 뽑기</span></div>
-    <div class="picker-sub" id="pickerSub">&nbsp;</div>
-    <div class="picker-controls">
-      <label><input type="checkbox" id="excludeTodayToggle" checked> 이번주에 먹은 곳 제외</label>
-    </div>
-    <button class="pick-btn" id="pickBtn">오늘 뭐 먹지?</button>
-    <button class="confirm-btn" id="confirmBtn">이걸로 확정!</button>
-  </section>
-
-  <section class="meal-history" aria-label="우리 팀 점심 기록">
-    <div class="history-tabs" role="tablist" aria-label="점심 기록 보기">
-      <button class="history-tab active" id="weekHistoryTab" type="button" role="tab" aria-selected="true" aria-controls="weekHistoryPanel">이번 주</button>
-      <button class="history-tab" id="calendarHistoryTab" type="button" role="tab" aria-selected="false" aria-controls="calendarHistoryPanel">히스토리 캘린더</button>
-    </div>
-    <div class="history-panel" id="weekHistoryPanel" role="tabpanel" aria-labelledby="weekHistoryTab">
-      <div class="week-strip" id="weekStrip"></div>
-    </div>
-    <div class="history-panel calendar-panel" id="calendarHistoryPanel" role="tabpanel" aria-labelledby="calendarHistoryTab" hidden>
-      <div class="calendar-header">
-        <button class="calendar-nav" id="previousMonthBtn" type="button" aria-label="이전 달">‹</button>
-        <h3 id="calendarMonthTitle"></h3>
-        <button class="calendar-nav" id="nextMonthBtn" type="button" aria-label="다음 달">›</button>
-      </div>
-      <div class="calendar-grid" id="calendarGrid"></div>
-    </div>
-    <p class="history-status" id="historyStatus" role="status" aria-live="polite"></p>
-  </section>
-
-  <section class="shortcuts-section" aria-label="빠른 메뉴">
-    <button class="shortcut-btn" id="worldcupShortcutBtn">
-      <div class="shortcut-icon">🏆</div>
-      <span class="shortcut-label">점심월드컵</span>
-    </button>
-  </section>
-
-  <section class="gallery-section">
-    <div class="curation-header">
-      <h2>오늘의 추천 점심, 사진으로 구경해보세요 🧐</h2>
-      <p>우리 팀이 실제로 찍고 남긴 점심 기록들이에요</p>
-    </div>
-    <div class="photo-gallery-shell">
-      <button class="gallery-nav previous" id="previousPhotoBtn" type="button" aria-label="이전 사진">‹</button>
-      <div class="photo-gallery" id="photoGallery"></div>
-      <button class="gallery-nav next" id="nextPhotoBtn" type="button" aria-label="다음 사진">›</button>
-    </div>
-  </section>
-
-  <section class="curation">
-    <div class="curation-heading-row">
-      <div class="curation-header">
-        <h2>오늘의 점심 큐레이션</h2>
-        <p>도보 10분 이내 · 우리 팀이 채워가는 리스트</p>
-      </div>
-      <button class="restaurant-add-btn" id="openRestaurantDialog" type="button">＋ 식당 등록</button>
-    </div>
-
-    <div class="stat-row" id="statRow"></div>
-
-    <div class="filter-bar">
-      <div class="search-row">
-        <input type="text" id="searchInput" placeholder="메뉴 이름으로 찾기">
-        <select id="sortSelect">
-          <option value="default">최신 등록 순</option>
-          <option value="votes">추천 많은 순</option>
-          <option value="reviews">댓글 많은 순</option>
-          <option value="name">가나다 순</option>
-        </select>
-      </div>
-      <div class="chip-row" id="categoryChips"></div>
-    </div>
-
-    <section class="restaurant-map-section" aria-label="등록된 식당 지도">
-      <div class="restaurant-map-header">
-        <div>
-          <h3>지도에서 보기</h3>
-          <p>등록된 주소를 기준으로 위치를 표시해요.</p>
-        </div>
-        <span class="restaurant-map-count" id="restaurantMapCount">0곳</span>
-      </div>
-      <div class="restaurant-map-frame">
-        <div class="restaurant-map" id="restaurantMap"></div>
-        <div class="restaurant-map-message" id="restaurantMapMessage">지도를 준비하고 있어요.</div>
-      </div>
-      <div class="map-selection" id="mapSelection" hidden></div>
+    <section class="hero">
+      <h1>오늘 점심,<br>뭐 먹을지 골라볼까요?</h1>
+      <p>우리 팀이 직접 가보고 남긴 기록으로 만든 점심 큐레이션이에요.</p>
     </section>
 
-    <div class="grid" id="restaurantGrid"></div>
-  </section>
-
-  <footer>
-    맛집 목록과 추천·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
-  </footer>
-
-</div>
-
-<dialog class="restaurant-dialog" id="restaurantDialog" aria-labelledby="restaurantDialogTitle">
-  <form class="restaurant-form" id="restaurantForm">
-    <div class="restaurant-form-header">
-      <div>
-        <h2 id="restaurantDialogTitle">새 식당 등록</h2>
-        <p id="restaurantDialogSubtitle">우리 팀이 함께 볼 점심 후보를 추가해요.</p>
+    <section class="picker-card">
+      <div class="picker-display" id="pickerDisplay"><span id="pickerEmoji"></span><span id="pickerText">눌러서 뽑기</span></div>
+      <div class="picker-sub" id="pickerSub">&nbsp;</div>
+      <div class="picker-controls">
+        <label><input type="checkbox" id="excludeTodayToggle" checked> 이번주에 먹은 곳 제외</label>
       </div>
-      <button class="dialog-close-btn" id="closeRestaurantDialog" type="button" aria-label="등록 창 닫기">×</button>
-    </div>
+      <button class="pick-btn" id="pickBtn">오늘 뭐 먹지?</button>
+      <button class="confirm-btn" id="confirmBtn">이걸로 확정!</button>
+    </section>
 
-    <div class="restaurant-form-grid">
-      <div class="restaurant-field">
-        <label for="restaurantName">식당 이름</label>
-        <input id="restaurantName" name="name" type="text" maxlength="50" required autocomplete="off">
+    <section class="meal-history" aria-label="우리 팀 점심 기록">
+      <div class="history-tabs" role="tablist" aria-label="점심 기록 보기">
+        <button class="history-tab active" id="weekHistoryTab" type="button" role="tab" aria-selected="true" aria-controls="weekHistoryPanel">이번 주</button>
+        <button class="history-tab" id="calendarHistoryTab" type="button" role="tab" aria-selected="false" aria-controls="calendarHistoryPanel">히스토리 캘린더</button>
       </div>
-      <div class="restaurant-field">
-        <label for="restaurantCategory">카테고리</label>
-        <select id="restaurantCategory" name="category" required>
-          <option value="">선택해주세요</option>
-          <option>한식</option>
-          <option>중식</option>
-          <option>일식</option>
-          <option>베트남음식</option>
-          <option>피자·양식</option>
-          <option>분식</option>
-          <option>마라탕</option>
-          <option>태국음식</option>
-          <option>도시락</option>
-          <option>술집</option>
-          <option>카페·디저트</option>
-          <option>기타</option>
-        </select>
+      <div class="history-panel" id="weekHistoryPanel" role="tabpanel" aria-labelledby="weekHistoryTab">
+        <div class="week-strip" id="weekStrip"></div>
       </div>
-      <div class="restaurant-field full">
-        <label for="restaurantAddress">주소 <span class="optional">선택</span></label>
-        <div class="address-search-row">
-          <input id="restaurantAddress" name="address" type="text" maxlength="150" autocomplete="street-address" placeholder="도로명 주소를 입력해주세요">
-          <button class="address-search-btn" id="restaurantGeocodeBtn" type="button">위치 확인</button>
+      <div class="history-panel calendar-panel" id="calendarHistoryPanel" role="tabpanel" aria-labelledby="calendarHistoryTab" hidden>
+        <div class="calendar-header">
+          <button class="calendar-nav" id="previousMonthBtn" type="button" aria-label="이전 달">‹</button>
+          <h3 id="calendarMonthTitle"></h3>
+          <button class="calendar-nav" id="nextMonthBtn" type="button" aria-label="다음 달">›</button>
         </div>
-        <span class="restaurant-location-status" id="restaurantLocationStatus">주소가 있으면 저장할 때 위치를 자동으로 찾아요.</span>
+        <div class="calendar-grid" id="calendarGrid"></div>
       </div>
-      <div class="restaurant-field full">
-        <label for="restaurantDescription">한 줄 설명 <span class="optional">선택</span></label>
-        <textarea id="restaurantDescription" name="description" maxlength="500" placeholder="추천 메뉴나 식당 분위기를 적어주세요."></textarea>
+      <p class="history-status" id="historyStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="shortcuts-section" aria-label="빠른 메뉴">
+      <button class="shortcut-btn" id="worldcupShortcutBtn">
+        <div class="shortcut-icon">🏆</div>
+        <span class="shortcut-label">점심월드컵</span>
+      </button>
+    </section>
+
+    <section class="gallery-section">
+      <div class="curation-header">
+        <h2>오늘의 추천 점심, 사진으로 구경해보세요 🧐</h2>
+        <p>우리 팀이 실제로 찍고 남긴 점심 기록들이에요</p>
       </div>
+      <div class="photo-gallery-shell">
+        <button class="gallery-nav previous" id="previousPhotoBtn" type="button" aria-label="이전 사진">‹</button>
+        <div class="photo-gallery" id="photoGallery"></div>
+        <button class="gallery-nav next" id="nextPhotoBtn" type="button" aria-label="다음 사진">›</button>
+      </div>
+    </section>
+
+    <section class="curation">
+      <div class="curation-heading-row">
+        <div class="curation-header">
+          <h2>오늘의 점심 큐레이션</h2>
+          <p>도보 10분 이내 · 우리 팀이 채워가는 리스트</p>
+        </div>
+        <button class="restaurant-add-btn" id="openRestaurantDialog" type="button">＋ 식당 등록</button>
+      </div>
+
+      <div class="stat-row" id="statRow"></div>
+
+      <div class="filter-bar">
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="메뉴 이름으로 찾기">
+          <select id="sortSelect">
+            <option value="default">최신 등록 순</option>
+            <option value="votes">추천 많은 순</option>
+            <option value="reviews">댓글 많은 순</option>
+            <option value="name">가나다 순</option>
+          </select>
+        </div>
+        <div class="chip-row" id="categoryChips"></div>
+      </div>
+
+      <section class="restaurant-map-section" aria-label="등록된 식당 지도">
+        <div class="restaurant-map-header">
+          <div>
+            <h3>지도에서 보기</h3>
+            <p>등록된 주소를 기준으로 위치를 표시해요.</p>
+          </div>
+          <span class="restaurant-map-count" id="restaurantMapCount">0곳</span>
+        </div>
+        <div class="restaurant-map-frame">
+          <div class="restaurant-map" id="restaurantMap"></div>
+          <div class="restaurant-map-message" id="restaurantMapMessage">지도를 준비하고 있어요.</div>
+        </div>
+        <div class="map-selection" id="mapSelection" hidden></div>
+      </section>
+
+      <div class="grid" id="restaurantGrid"></div>
+    </section>
+
+    <footer>
+      맛집 목록과 추천·리뷰는 이 페이지를 사용하는 모든 팀원에게 공유돼요.
+    </footer>
+
+  </div>
+
+  <dialog class="restaurant-dialog" id="restaurantDialog" aria-labelledby="restaurantDialogTitle">
+    <form class="restaurant-form" id="restaurantForm">
+      <div class="restaurant-form-header">
+        <div>
+          <h2 id="restaurantDialogTitle">새 식당 등록</h2>
+          <p id="restaurantDialogSubtitle">우리 팀이 함께 볼 점심 후보를 추가해요.</p>
+        </div>
+        <button class="dialog-close-btn" id="closeRestaurantDialog" type="button" aria-label="등록 창 닫기">×</button>
+      </div>
+
+      <div class="restaurant-form-grid">
+        <div class="restaurant-field">
+          <label for="restaurantName">식당 이름</label>
+          <input id="restaurantName" name="name" type="text" maxlength="50" required autocomplete="off">
+        </div>
+        <div class="restaurant-field">
+          <label for="restaurantCategory">카테고리</label>
+          <select id="restaurantCategory" name="category" required>
+            <option value="">선택해주세요</option>
+            <option>한식</option>
+            <option>중식</option>
+            <option>일식</option>
+            <option>베트남음식</option>
+            <option>피자·양식</option>
+            <option>분식</option>
+            <option>마라탕</option>
+            <option>태국음식</option>
+            <option>도시락</option>
+            <option>술집</option>
+            <option>카페·디저트</option>
+            <option>기타</option>
+          </select>
+        </div>
+        <div class="restaurant-field full">
+          <label for="restaurantAddress">주소 <span class="optional">선택</span></label>
+          <div class="address-search-row">
+            <input id="restaurantAddress" name="address" type="text" maxlength="150" autocomplete="street-address" placeholder="도로명 주소를 입력해주세요">
+            <button class="address-search-btn" id="restaurantGeocodeBtn" type="button">위치 확인</button>
+          </div>
+          <span class="restaurant-location-status" id="restaurantLocationStatus">주소가 있으면 저장할 때 위치를 자동으로 찾아요.</span>
+        </div>
+        <div class="restaurant-field full">
+          <label for="restaurantDescription">한 줄 설명 <span class="optional">선택</span></label>
+          <textarea id="restaurantDescription" name="description" maxlength="500" placeholder="추천 메뉴나 식당 분위기를 적어주세요."></textarea>
+        </div>
+        <div class="restaurant-field">
+          <label for="restaurantPhoto">대표 사진 <span class="optional">선택</span></label>
+          <input id="restaurantPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
+          <small>JPG·PNG·WebP, 원본 10MB 이하</small>
+        </div>
+      </div>
+
+      <p class="restaurant-form-status" id="restaurantFormStatus" role="status" aria-live="polite"></p>
+      <div class="restaurant-form-actions">
+        <button class="restaurant-cancel-btn" id="cancelRestaurantDialog" type="button">취소</button>
+        <button class="restaurant-submit-btn" id="restaurantSubmitBtn" type="submit">등록하기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="restaurant-dialog meal-record-dialog" id="mealRecordDialog" aria-labelledby="mealRecordDialogTitle">
+    <form class="restaurant-form" id="mealRecordForm">
+      <div class="restaurant-form-header">
+        <div>
+          <h2 id="mealRecordDialogTitle">점심 기록 선택</h2>
+          <p>등록된 식당 중 그날 먹은 곳을 골라주세요.</p>
+        </div>
+        <button class="dialog-close-btn" id="closeMealRecordDialog" type="button" aria-label="점심 기록 창 닫기">×</button>
+      </div>
+
       <div class="restaurant-field">
-        <label for="restaurantPhoto">대표 사진 <span class="optional">선택</span></label>
-        <input id="restaurantPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
-        <small>JPG·PNG·WebP, 원본 10MB 이하</small>
+        <label for="mealRecordRestaurant">식당</label>
+        <select id="mealRecordRestaurant" required>
+          <option value="">식당을 선택해주세요</option>
+        </select>
+        <small>이미 기록된 날짜라면 새로 선택한 식당으로 변경돼요.</small>
+      </div>
+
+      <p class="restaurant-form-status" id="mealRecordStatus" role="status" aria-live="polite"></p>
+      <div class="restaurant-form-actions">
+        <button class="restaurant-cancel-btn" id="cancelMealRecordDialog" type="button">취소</button>
+        <button class="restaurant-submit-btn" id="mealRecordSubmitBtn" type="submit">저장하기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Worldcup Setup Dialog -->
+  <dialog class="dialog worldcup-setup-dialog" id="worldcupSetupDialog">
+    <div class="worldcup-setup-content">
+      <div class="worldcup-setup-header">
+        <div class="worldcup-badge">🏆 MINI GAME</div>
+        <h2>점심 메뉴 월드컵</h2>
+        <p>토너먼트에 참가할 식당 수를 선택하세요.</p>
+      </div>
+      <div class="worldcup-select-container">
+        <label for="worldcupSizeSelect" class="worldcup-select-label">토너먼트 라운드</label>
+        <div class="worldcup-select-wrapper">
+          <select id="worldcupSizeSelect" class="worldcup-select form-control">
+            <option value="8">8강</option>
+            <option value="16">16강</option>
+            <option value="32">32강</option>
+            <option value="64">64강</option>
+            <option value="128">128강</option>
+            <option value="256">256강</option>
+          </select>
+        </div>
+        <p class="worldcup-select-hint">💡 등록된 식당 수에 맞춰 가능한 라운드가 결정돼요.</p>
+      </div>
+      <div class="worldcup-dialog-actions dialog-actions">
+        <button class="worldcup-btn worldcup-btn-secondary btn btn-secondary" id="cancelWorldcupSetup" type="button">취소</button>
+        <button class="worldcup-btn worldcup-btn-primary btn btn-primary" id="startWorldcupBtn" type="button">시작하기</button>
       </div>
     </div>
+  </dialog>
 
-    <p class="restaurant-form-status" id="restaurantFormStatus" role="status" aria-live="polite"></p>
-    <div class="restaurant-form-actions">
-      <button class="restaurant-cancel-btn" id="cancelRestaurantDialog" type="button">취소</button>
-      <button class="restaurant-submit-btn" id="restaurantSubmitBtn" type="submit">등록하기</button>
-    </div>
-  </form>
-</dialog>
-
-<dialog class="restaurant-dialog meal-record-dialog" id="mealRecordDialog" aria-labelledby="mealRecordDialogTitle">
-  <form class="restaurant-form" id="mealRecordForm">
-    <div class="restaurant-form-header">
-      <div>
-        <h2 id="mealRecordDialogTitle">점심 기록 선택</h2>
-        <p>등록된 식당 중 그날 먹은 곳을 골라주세요.</p>
+  <!-- Worldcup Play Dialog -->
+  <dialog class="dialog worldcup-dialog" id="worldcupPlayDialog">
+    <div class="worldcup-header">
+      <div class="worldcup-round-tag">
+        <span class="worldcup-round-dot"></span>
+        <h2 id="worldcupRoundText">16강 (1/8)</h2>
       </div>
-      <button class="dialog-close-btn" id="closeMealRecordDialog" type="button" aria-label="점심 기록 창 닫기">×</button>
+      <button class="dialog-close-btn worldcup-close-btn dialog-close" id="closeWorldcupPlay" type="button" aria-label="월드컵 닫기">×</button>
     </div>
+    <div class="worldcup-content">
+      <div class="worldcup-battle" id="worldcupBattleArea">
+        <div class="worldcup-card" id="worldcupCardA"></div>
+        <div class="worldcup-vs">VS</div>
+        <div class="worldcup-card" id="worldcupCardB"></div>
+      </div>
+      <div class="worldcup-winner-area" id="worldcupWinnerArea">
+        <div class="worldcup-winner-header">
+          <div style="font-size: 32px; margin-bottom: 4px;">🎉</div>
+          <h3>최종 우승 메뉴</h3>
+        </div>
+        <div class="worldcup-winner-card" id="worldcupWinnerCard"></div>
+        <button class="worldcup-btn-winner btn btn-primary" id="worldcupRecordBtn" type="button">오늘의 점심으로 확정 기록하기</button>
+      </div>
+    </div>
+  </dialog>
 
-    <div class="restaurant-field">
-      <label for="mealRecordRestaurant">식당</label>
-      <select id="mealRecordRestaurant" required>
-        <option value="">식당을 선택해주세요</option>
-      </select>
-      <small>이미 기록된 날짜라면 새로 선택한 식당으로 변경돼요.</small>
-    </div>
-
-    <p class="restaurant-form-status" id="mealRecordStatus" role="status" aria-live="polite"></p>
-    <div class="restaurant-form-actions">
-      <button class="restaurant-cancel-btn" id="cancelMealRecordDialog" type="button">취소</button>
-      <button class="restaurant-submit-btn" id="mealRecordSubmitBtn" type="submit">저장하기</button>
-    </div>
-  </form>
-</dialog>
-
-<!-- Worldcup Setup Dialog -->
-<dialog class="dialog" id="worldcupSetupDialog">
-  <div class="dialog-content">
-    <h2>🔥 점심 메뉴 월드컵</h2>
-    <p>토너먼트에 참가할 식당 수를 선택하세요.</p>
-    <div class="form-group" style="margin-top: 15px;">
-      <select id="worldcupSizeSelect" class="form-control">
-        <option value="8">8강</option>
-        <option value="16">16강</option>
-        <option value="32">32강</option>
-        <option value="64">64강</option>
-        <option value="128">128강</option>
-        <option value="256">256강</option>
-      </select>
-    </div>
-    <div class="dialog-actions">
-      <button class="btn btn-secondary" id="cancelWorldcupSetup">취소</button>
-      <button class="btn btn-primary" id="startWorldcupBtn">시작하기</button>
-    </div>
-  </div>
-</dialog>
-
-<!-- Worldcup Play Dialog -->
-<dialog class="dialog worldcup-dialog" id="worldcupPlayDialog">
-  <div class="worldcup-header">
-    <h2 id="worldcupRoundText">16강 (1/8)</h2>
-    <button class="dialog-close" id="closeWorldcupPlay">×</button>
-  </div>
-  <div class="worldcup-content">
-    <div class="worldcup-battle" id="worldcupBattleArea">
-      <div class="worldcup-card" id="worldcupCardA"></div>
-      <div class="worldcup-vs">VS</div>
-      <div class="worldcup-card" id="worldcupCardB"></div>
-    </div>
-    <div class="worldcup-winner-area" id="worldcupWinnerArea">
-      <h3>🎉 우승 메뉴 🎉</h3>
-      <div class="worldcup-winner-card" id="worldcupWinnerCard"></div>
-      <button class="btn btn-primary" id="worldcupRecordBtn" style="width: 100%;">오늘의 점심으로 확정 기록하기</button>
-    </div>
-  </div>
-</dialog>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
-<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.3/leaflet-maplibre-gl.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const SUPABASE_URL = 'https://hgqqlxuuifkbogmizsjc.supabase.co';
-  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_z-aaM1TaFemU2DLR-_OfEA_AMRlQXDU';
-  window.todayBapDb = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.3/leaflet-maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://hgqqlxuuifkbogmizsjc.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_z-aaM1TaFemU2DLR-_OfEA_AMRlQXDU';
+    window.todayBapDb = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
       }
-    }
-  );
-</script>
+    );
+  </script>
 
-<script>
-(function () {
-  const MENU_KEY = 'ezsecu-lunch-menus-v3';
-  const CLIENT_ID_KEY = 'ezbab-client-id';
-  const RESTAURANT_IMAGE_BUCKET = 'restaurant-images';
-  const MAX_SOURCE_IMAGE_BYTES = 10 * 1024 * 1024;
-  const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024;
-  const NEW_BADGE_DURATION_MS = 24 * 60 * 60 * 1000;
-  const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  <script>
+    (function () {
+      const MENU_KEY = 'ezsecu-lunch-menus-v3';
+      const CLIENT_ID_KEY = 'ezbab-client-id';
+      const RESTAURANT_IMAGE_BUCKET = 'restaurant-images';
+      const MAX_SOURCE_IMAGE_BYTES = 10 * 1024 * 1024;
+      const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024;
+      const NEW_BADGE_DURATION_MS = 24 * 60 * 60 * 1000;
+      const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-  const CATEGORY_EMOJI = {
-    '한식': '🍚',
-    '중식': '🥟',
-    '일식': '🍣',
-    '베트남음식': '🍜',
-    '피자·양식': '🍕',
-    '술집': '🍻',
-    '기타': '🍽️',
-    '도시락': '🍱',
-    '분식': '🍙',
-    '마라탕': '🌶️',
-    '일식': '🍣',
-    '태국음식': '🍛',
-    '카페·디저트': '☕',
-  };
+      const CATEGORY_EMOJI = {
+        '한식': '🍚',
+        '중식': '🥟',
+        '일식': '🍣',
+        '베트남음식': '🍜',
+        '피자·양식': '🍕',
+        '술집': '🍻',
+        '기타': '🍽️',
+        '도시락': '🍱',
+        '분식': '🍙',
+        '마라탕': '🌶️',
+        '일식': '🍣',
+        '태국음식': '🍛',
+        '카페·디저트': '☕',
+      };
 
 
-  let menus = [];
-  let history = [];
-  let activeCategory = '전체';
-  let searchTerm = '';
-  let sortMode = 'default';
-  let pendingChoice = null;
-  let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  let editingId = null;
-  let selectedHistoryDate = null;
-  let pendingCoordinates = null;
-  let lastGeocodedAddress = '';
-  let coordinateColumnsAvailable = true;
-  let restaurantMap = null;
-  let restaurantMarkers = [];
-  let lastGeocodeRequestAt = 0;
-  let newBadgeTimer = null;
+      let menus = [];
+      let history = [];
+      let activeCategory = '전체';
+      let searchTerm = '';
+      let sortMode = 'default';
+      let pendingChoice = null;
+      let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      let editingId = null;
+      let selectedHistoryDate = null;
+      let pendingCoordinates = null;
+      let lastGeocodedAddress = '';
+      let coordinateColumnsAvailable = true;
+      let restaurantMap = null;
+      let restaurantMarkers = [];
+      let lastGeocodeRequestAt = 0;
+      let newBadgeTimer = null;
 
-  function getClientId() {
-    let clientId = localStorage.getItem(CLIENT_ID_KEY);
-    if (!clientId) {
-      clientId = crypto.randomUUID();
-      localStorage.setItem(CLIENT_ID_KEY, clientId);
-    }
-    return clientId;
-  }
+      function getClientId() {
+        let clientId = localStorage.getItem(CLIENT_ID_KEY);
+        if (!clientId) {
+          clientId = crypto.randomUUID();
+          localStorage.setItem(CLIENT_ID_KEY, clientId);
+        }
+        return clientId;
+      }
 
-  const clientId = getClientId();
+      const clientId = getClientId();
 
-  const grid = document.getElementById('restaurantGrid');
-  const categoryChipsEl = document.getElementById('categoryChips');
-  const searchInput = document.getElementById('searchInput');
-  const sortSelect = document.getElementById('sortSelect');
-  const statRow = document.getElementById('statRow');
-  const photoGallery = document.getElementById('photoGallery');
-  const previousPhotoBtn = document.getElementById('previousPhotoBtn');
-  const nextPhotoBtn = document.getElementById('nextPhotoBtn');
-  const weekStrip = document.getElementById('weekStrip');
-  const pickerEmoji = document.getElementById('pickerEmoji');
-  const pickerText = document.getElementById('pickerText');
-  const pickerSub = document.getElementById('pickerSub');
-  const pickBtn = document.getElementById('pickBtn');
-  const confirmBtn = document.getElementById('confirmBtn');
-  const excludeTodayToggle = document.getElementById('excludeTodayToggle');
-  const historyStatus = document.getElementById('historyStatus');
-  const calendarGrid = document.getElementById('calendarGrid');
-  const calendarMonthTitle = document.getElementById('calendarMonthTitle');
-  const restaurantDialog = document.getElementById('restaurantDialog');
-  const restaurantForm = document.getElementById('restaurantForm');
-  const restaurantFormStatus = document.getElementById('restaurantFormStatus');
-  const restaurantSubmitBtn = document.getElementById('restaurantSubmitBtn');
-  const restaurantDialogTitle = document.getElementById('restaurantDialogTitle');
-  const restaurantDialogSubtitle = document.getElementById('restaurantDialogSubtitle');
-  const restaurantAddressInput = document.getElementById('restaurantAddress');
-  const restaurantGeocodeBtn = document.getElementById('restaurantGeocodeBtn');
-  const restaurantLocationStatus = document.getElementById('restaurantLocationStatus');
-  const restaurantMapEl = document.getElementById('restaurantMap');
-  const restaurantMapMessage = document.getElementById('restaurantMapMessage');
-  const restaurantMapCount = document.getElementById('restaurantMapCount');
-  const mapSelection = document.getElementById('mapSelection');
-  const mealRecordDialog = document.getElementById('mealRecordDialog');
-  const mealRecordForm = document.getElementById('mealRecordForm');
-  const mealRecordRestaurant = document.getElementById('mealRecordRestaurant');
-  const mealRecordDialogTitle = document.getElementById('mealRecordDialogTitle');
-  const mealRecordStatus = document.getElementById('mealRecordStatus');
-  const mealRecordSubmitBtn = document.getElementById('mealRecordSubmitBtn');
+      const grid = document.getElementById('restaurantGrid');
+      const categoryChipsEl = document.getElementById('categoryChips');
+      const searchInput = document.getElementById('searchInput');
+      const sortSelect = document.getElementById('sortSelect');
+      const statRow = document.getElementById('statRow');
+      const photoGallery = document.getElementById('photoGallery');
+      const previousPhotoBtn = document.getElementById('previousPhotoBtn');
+      const nextPhotoBtn = document.getElementById('nextPhotoBtn');
+      const weekStrip = document.getElementById('weekStrip');
+      const pickerEmoji = document.getElementById('pickerEmoji');
+      const pickerText = document.getElementById('pickerText');
+      const pickerSub = document.getElementById('pickerSub');
+      const pickBtn = document.getElementById('pickBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const excludeTodayToggle = document.getElementById('excludeTodayToggle');
+      const historyStatus = document.getElementById('historyStatus');
+      const calendarGrid = document.getElementById('calendarGrid');
+      const calendarMonthTitle = document.getElementById('calendarMonthTitle');
+      const restaurantDialog = document.getElementById('restaurantDialog');
+      const restaurantForm = document.getElementById('restaurantForm');
+      const restaurantFormStatus = document.getElementById('restaurantFormStatus');
+      const restaurantSubmitBtn = document.getElementById('restaurantSubmitBtn');
+      const restaurantDialogTitle = document.getElementById('restaurantDialogTitle');
+      const restaurantDialogSubtitle = document.getElementById('restaurantDialogSubtitle');
+      const restaurantAddressInput = document.getElementById('restaurantAddress');
+      const restaurantGeocodeBtn = document.getElementById('restaurantGeocodeBtn');
+      const restaurantLocationStatus = document.getElementById('restaurantLocationStatus');
+      const restaurantMapEl = document.getElementById('restaurantMap');
+      const restaurantMapMessage = document.getElementById('restaurantMapMessage');
+      const restaurantMapCount = document.getElementById('restaurantMapCount');
+      const mapSelection = document.getElementById('mapSelection');
+      const mealRecordDialog = document.getElementById('mealRecordDialog');
+      const mealRecordForm = document.getElementById('mealRecordForm');
+      const mealRecordRestaurant = document.getElementById('mealRecordRestaurant');
+      const mealRecordDialogTitle = document.getElementById('mealRecordDialogTitle');
+      const mealRecordStatus = document.getElementById('mealRecordStatus');
+      const mealRecordSubmitBtn = document.getElementById('mealRecordSubmitBtn');
 
-  // Worldcup Elements
-  const worldcupShortcutBtn = document.getElementById('worldcupShortcutBtn');
-  const worldcupSetupDialog = document.getElementById('worldcupSetupDialog');
-  const worldcupSizeSelect = document.getElementById('worldcupSizeSelect');
-  const cancelWorldcupSetup = document.getElementById('cancelWorldcupSetup');
-  const startWorldcupBtn = document.getElementById('startWorldcupBtn');
-  const worldcupPlayDialog = document.getElementById('worldcupPlayDialog');
-  const closeWorldcupPlay = document.getElementById('closeWorldcupPlay');
-  const worldcupRoundText = document.getElementById('worldcupRoundText');
-  const worldcupBattleArea = document.getElementById('worldcupBattleArea');
-  const worldcupCardA = document.getElementById('worldcupCardA');
-  const worldcupCardB = document.getElementById('worldcupCardB');
-  const worldcupWinnerArea = document.getElementById('worldcupWinnerArea');
-  const worldcupWinnerCard = document.getElementById('worldcupWinnerCard');
-  const worldcupRecordBtn = document.getElementById('worldcupRecordBtn');
-  
-  let worldcupMenus = [];
-  let currentRoundMenus = [];
-  let nextRoundMenus = [];
-  let currentMatchIndex = 0;
+      // Worldcup Elements
+      const worldcupShortcutBtn = document.getElementById('worldcupShortcutBtn');
+      const worldcupSetupDialog = document.getElementById('worldcupSetupDialog');
+      const worldcupSizeSelect = document.getElementById('worldcupSizeSelect');
+      const cancelWorldcupSetup = document.getElementById('cancelWorldcupSetup');
+      const startWorldcupBtn = document.getElementById('startWorldcupBtn');
+      const worldcupPlayDialog = document.getElementById('worldcupPlayDialog');
+      const closeWorldcupPlay = document.getElementById('closeWorldcupPlay');
+      const worldcupRoundText = document.getElementById('worldcupRoundText');
+      const worldcupBattleArea = document.getElementById('worldcupBattleArea');
+      const worldcupCardA = document.getElementById('worldcupCardA');
+      const worldcupCardB = document.getElementById('worldcupCardB');
+      const worldcupWinnerArea = document.getElementById('worldcupWinnerArea');
+      const worldcupWinnerCard = document.getElementById('worldcupWinnerCard');
+      const worldcupRecordBtn = document.getElementById('worldcupRecordBtn');
 
-  function resetRestaurantDialogToAddMode() {
-    editingId = null;
-    pendingCoordinates = null;
-    lastGeocodedAddress = '';
-    restaurantDialogTitle.textContent = '새 식당 등록';
-    restaurantDialogSubtitle.textContent = '우리 팀이 함께 볼 점심 후보를 추가해요.';
-    restaurantSubmitBtn.textContent = '등록하기';
-    document.getElementById('restaurantPhoto').closest('.restaurant-field').style.display = '';
-    restaurantLocationStatus.textContent = '주소가 있으면 저장할 때 위치를 자동으로 찾아요.';
-  }
+      let worldcupMenus = [];
+      let currentRoundMenus = [];
+      let nextRoundMenus = [];
+      let currentMatchIndex = 0;
 
-  function openEditDialog(menu) {
-    editingId = menu.id;
-    restaurantForm.reset();
-    restaurantFormStatus.textContent = '';
-    restaurantDialogTitle.textContent = '식당 정보 수정';
-    restaurantDialogSubtitle.textContent = `${menu.name} 정보를 수정해요. 대표 사진은 카드에서 바로 바꿀 수 있어요.`;
-    restaurantSubmitBtn.textContent = '수정하기';
-    document.getElementById('restaurantName').value = menu.name || '';
-    document.getElementById('restaurantCategory').value = menu.category || '';
-    document.getElementById('restaurantAddress').value = menu.address || '';
-    document.getElementById('restaurantDescription').value = menu.review || '';
-    pendingCoordinates = Number.isFinite(menu.latitude) && Number.isFinite(menu.longitude)
-      ? { latitude: menu.latitude, longitude: menu.longitude }
-      : null;
-    lastGeocodedAddress = pendingCoordinates ? (menu.address || '') : '';
-    restaurantLocationStatus.textContent = pendingCoordinates
-      ? '저장된 지도 위치가 있어요. 주소가 바뀌면 다시 찾아요.'
-      : '주소가 있으면 저장할 때 위치를 자동으로 찾아요.';
-    // 대표 사진은 카드의 '사진 변경' 버튼으로 별도 관리하므로 수정 창에서는 숨김
-    document.getElementById('restaurantPhoto').closest('.restaurant-field').style.display = 'none';
-    restaurantDialog.showModal();
-    document.getElementById('restaurantName').focus();
-  }
+      function resetRestaurantDialogToAddMode() {
+        editingId = null;
+        pendingCoordinates = null;
+        lastGeocodedAddress = '';
+        restaurantDialogTitle.textContent = '새 식당 등록';
+        restaurantDialogSubtitle.textContent = '우리 팀이 함께 볼 점심 후보를 추가해요.';
+        restaurantSubmitBtn.textContent = '등록하기';
+        document.getElementById('restaurantPhoto').closest('.restaurant-field').style.display = '';
+        restaurantLocationStatus.textContent = '주소가 있으면 저장할 때 위치를 자동으로 찾아요.';
+      }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
+      function openEditDialog(menu) {
+        editingId = menu.id;
+        restaurantForm.reset();
+        restaurantFormStatus.textContent = '';
+        restaurantDialogTitle.textContent = '식당 정보 수정';
+        restaurantDialogSubtitle.textContent = `${menu.name} 정보를 수정해요. 대표 사진은 카드에서 바로 바꿀 수 있어요.`;
+        restaurantSubmitBtn.textContent = '수정하기';
+        document.getElementById('restaurantName').value = menu.name || '';
+        document.getElementById('restaurantCategory').value = menu.category || '';
+        document.getElementById('restaurantAddress').value = menu.address || '';
+        document.getElementById('restaurantDescription').value = menu.review || '';
+        pendingCoordinates = Number.isFinite(menu.latitude) && Number.isFinite(menu.longitude)
+          ? { latitude: menu.latitude, longitude: menu.longitude }
+          : null;
+        lastGeocodedAddress = pendingCoordinates ? (menu.address || '') : '';
+        restaurantLocationStatus.textContent = pendingCoordinates
+          ? '저장된 지도 위치가 있어요. 주소가 바뀌면 다시 찾아요.'
+          : '주소가 있으면 저장할 때 위치를 자동으로 찾아요.';
+        // 대표 사진은 카드의 '사진 변경' 버튼으로 별도 관리하므로 수정 창에서는 숨김
+        document.getElementById('restaurantPhoto').closest('.restaurant-field').style.display = 'none';
+        restaurantDialog.showModal();
+        document.getElementById('restaurantName').focus();
+      }
 
-  function showMapMessage(message) {
-    restaurantMapMessage.textContent = message;
-    restaurantMapMessage.hidden = false;
-  }
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
 
-  async function waitForGeocodeTurn() {
-    const remaining = Math.max(0, 1000 - (Date.now() - lastGeocodeRequestAt));
-    if (remaining) await new Promise(resolve => setTimeout(resolve, remaining));
-    lastGeocodeRequestAt = Date.now();
-  }
+      function showMapMessage(message) {
+        restaurantMapMessage.textContent = message;
+        restaurantMapMessage.hidden = false;
+      }
 
-  async function geocodeRestaurantAddress(address) {
-    await waitForGeocodeTurn();
-    const params = new URLSearchParams({
-      q: address,
-      format: 'jsonv2',
-      limit: '1',
-      countrycodes: 'kr',
-      'accept-language': 'ko'
-    });
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
-    if (!response.ok) throw new Error('주소 검색 서비스에 연결하지 못했어요.');
+      async function waitForGeocodeTurn() {
+        const remaining = Math.max(0, 1000 - (Date.now() - lastGeocodeRequestAt));
+        if (remaining) await new Promise(resolve => setTimeout(resolve, remaining));
+        lastGeocodeRequestAt = Date.now();
+      }
 
-    const results = await response.json();
-    const matchedAddress = results[0];
-    const latitude = Number(matchedAddress?.lat);
-    const longitude = Number(matchedAddress?.lon);
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      throw new Error('주소에 맞는 위치를 찾지 못했어요. 도로명 주소를 확인해주세요.');
-    }
-    return { latitude, longitude };
-  }
+      async function geocodeRestaurantAddress(address) {
+        await waitForGeocodeTurn();
+        const params = new URLSearchParams({
+          q: address,
+          format: 'jsonv2',
+          limit: '1',
+          countrycodes: 'kr',
+          'accept-language': 'ko'
+        });
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+        if (!response.ok) throw new Error('주소 검색 서비스에 연결하지 못했어요.');
 
-  async function coordinatesForSave(address) {
-    if (!address) return { coordinates: null, warning: '' };
-    if (pendingCoordinates && lastGeocodedAddress === address) {
-      return { coordinates: pendingCoordinates, warning: '' };
-    }
-    try {
-      const coordinates = await geocodeRestaurantAddress(address);
-      pendingCoordinates = coordinates;
-      lastGeocodedAddress = address;
-      return { coordinates, warning: '' };
-    } catch (error) {
-      console.warn('식당 주소 좌표 변환 실패:', error);
-      return { coordinates: null, warning: '주소의 지도 위치를 찾지 못해 주소만 저장했어요.' };
-    }
-  }
+        const results = await response.json();
+        const matchedAddress = results[0];
+        const latitude = Number(matchedAddress?.lat);
+        const longitude = Number(matchedAddress?.lon);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          throw new Error('주소에 맞는 위치를 찾지 못했어요. 도로명 주소를 확인해주세요.');
+        }
+        return { latitude, longitude };
+      }
 
-  function markerIcon(menu, selected = false) {
-    const emoji = CATEGORY_EMOJI[menu.category] || '🍽️';
-    const size = selected ? 38 : 32;
-    return window.L.divIcon({
-      className: 'restaurant-map-div-icon',
-      html: `<div class="map-marker${selected ? ' selected' : ''}"><span>${emoji}</span></div>`,
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size]
-    });
-  }
+      async function coordinatesForSave(address) {
+        if (!address) return { coordinates: null, warning: '' };
+        if (pendingCoordinates && lastGeocodedAddress === address) {
+          return { coordinates: pendingCoordinates, warning: '' };
+        }
+        try {
+          const coordinates = await geocodeRestaurantAddress(address);
+          pendingCoordinates = coordinates;
+          lastGeocodedAddress = address;
+          return { coordinates, warning: '' };
+        } catch (error) {
+          console.warn('식당 주소 좌표 변환 실패:', error);
+          return { coordinates: null, warning: '주소의 지도 위치를 찾지 못해 주소만 저장했어요.' };
+        }
+      }
 
-  function clearRestaurantMarkers() {
-    restaurantMarkers.forEach(({ marker }) => marker.remove());
-    restaurantMarkers = [];
-  }
+      function markerIcon(menu, selected = false) {
+        const emoji = CATEGORY_EMOJI[menu.category] || '🍽️';
+        const size = selected ? 38 : 32;
+        return window.L.divIcon({
+          className: 'restaurant-map-div-icon',
+          html: `<div class="map-marker${selected ? ' selected' : ''}"><span>${emoji}</span></div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size]
+        });
+      }
 
-  function selectRestaurantMarker(selectedEntry) {
-    restaurantMarkers.forEach(entry => {
-      entry.marker.setIcon(markerIcon(entry.menu, entry === selectedEntry));
-    });
-    const { menu, marker } = selectedEntry;
-    restaurantMap.panTo(marker.getLatLng());
-    mapSelection.innerHTML = `
+      function clearRestaurantMarkers() {
+        restaurantMarkers.forEach(({ marker }) => marker.remove());
+        restaurantMarkers = [];
+      }
+
+      function selectRestaurantMarker(selectedEntry) {
+        restaurantMarkers.forEach(entry => {
+          entry.marker.setIcon(markerIcon(entry.menu, entry === selectedEntry));
+        });
+        const { menu, marker } = selectedEntry;
+        restaurantMap.panTo(marker.getLatLng());
+        mapSelection.innerHTML = `
       <span><b>${escapeHtml(menu.name)}</b> · ${escapeHtml(menu.category || '기타')}</span>
       <span class="map-selection-votes">👍 ${menu.upVotes} &nbsp; 👎 ${menu.downVotes}</span>
     `;
-    mapSelection.hidden = false;
-  }
-
-  function renderRestaurantMap() {
-    const visibleMenus = filteredSortedMenus().filter(menu =>
-      Number.isFinite(menu.latitude) && Number.isFinite(menu.longitude)
-    );
-    restaurantMapCount.textContent = `${visibleMenus.length}곳`;
-
-    if (!restaurantMap) return;
-    clearRestaurantMarkers();
-    mapSelection.hidden = true;
-
-    if (!coordinateColumnsAvailable) {
-      showMapMessage('restaurants 테이블에 latitude와 longitude 컬럼을 추가하면 위치가 표시돼요.');
-      return;
-    }
-    if (visibleMenus.length === 0) {
-      showMapMessage('아직 지도 위치가 등록된 식당이 없어요. 식당 주소를 저장하면 자동으로 표시돼요.');
-      return;
-    }
-
-    restaurantMapMessage.hidden = true;
-    const bounds = window.L.latLngBounds([]);
-    visibleMenus.forEach(menu => {
-      const position = [menu.latitude, menu.longitude];
-      const marker = window.L.marker(position, {
-        title: menu.name,
-        alt: `${menu.name} 위치`,
-        icon: markerIcon(menu)
-      }).addTo(restaurantMap);
-      const entry = { menu, marker };
-      marker.on('click', () => selectRestaurantMarker(entry));
-      restaurantMarkers.push(entry);
-      bounds.extend(position);
-    });
-
-    if (visibleMenus.length === 1) {
-      restaurantMap.setView(bounds.getCenter(), 16);
-    } else {
-      restaurantMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 16 });
-    }
-  }
-
-  function initializeRestaurantMap() {
-    try {
-      if (!window.L) throw new Error('Leaflet을 불러오지 못했어요.');
-      const firstLocatedMenu = menus.find(menu =>
-        Number.isFinite(menu.latitude) && Number.isFinite(menu.longitude)
-      );
-      restaurantMap = window.L.map(restaurantMapEl, { zoomControl: true }).setView(
-        [firstLocatedMenu?.latitude || 37.5666103, firstLocatedMenu?.longitude || 126.9783882],
-        firstLocatedMenu ? 16 : 13
-      );
-      window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(restaurantMap);
-      renderRestaurantMap();
-      requestAnimationFrame(() => restaurantMap.invalidateSize());
-    } catch (error) {
-      console.error('지도 초기화 실패:', error);
-      showMapMessage('지도를 불러오지 못했어요. 인터넷 연결을 확인해주세요.');
-    }
-  }
-
-  function restaurantPhotoUrl(photoValue) {
-    if (!photoValue) return '';
-    if (/^(https?:|data:|blob:)/i.test(photoValue)) return photoValue;
-    return window.todayBapDb.storage
-      .from(RESTAURANT_IMAGE_BUCKET)
-      .getPublicUrl(photoValue).data.publicUrl;
-  }
-
-  async function compressRestaurantPhoto(file) {
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-      throw new Error('JPG, PNG, WebP 형식의 사진만 등록할 수 있어요.');
-    }
-    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
-      throw new Error('원본 사진은 10MB 이하만 선택할 수 있어요.');
-    }
-
-    const bitmap = await createImageBitmap(file);
-    const maxSide = 1600;
-    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const context = canvas.getContext('2d');
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
-    if (!blob) throw new Error('사진을 압축하지 못했어요. 다른 사진을 선택해주세요.');
-    if (blob.size > MAX_UPLOAD_IMAGE_BYTES) {
-      throw new Error('압축 후 사진이 5MB를 넘어요. 더 작은 사진을 선택해주세요.');
-    }
-    return blob;
-  }
-
-  async function uploadRestaurantGalleryPhoto(input, menu) {
-    const file = input.files && input.files[0];
-    if (!file) return;
-
-    const label = input.closest('.photo-upload-label');
-    const labelText = label.querySelector('[data-role="photo-upload-label"]');
-    input.disabled = true;
-    label.classList.add('is-uploading');
-    labelText.textContent = '업로드 중…';
-
-    try {
-      const compressedPhoto = await compressRestaurantPhoto(file);
-      const imagePath = `restaurants/${menu.id}/${crypto.randomUUID()}.webp`;
-      const { error: uploadError } = await window.todayBapDb.storage
-        .from(RESTAURANT_IMAGE_BUCKET)
-        .upload(imagePath, compressedPhoto, {
-          contentType: 'image/webp',
-          cacheControl: '3600',
-          upsert: false
-        });
-      if (uploadError) throw uploadError;
-
-      const { error: insertError } = await window.todayBapDb
-        .from('restaurant_photos')
-        .insert({
-          restaurant_id: menu.id,
-          image_path: imagePath,
-          client_id: clientId,
-          author_name: '익명',
-          created_at: new Date().toISOString()
-        });
-      if (insertError) {
-        await window.todayBapDb.storage.from(RESTAURANT_IMAGE_BUCKET).remove([imagePath]);
-        throw insertError;
+        mapSelection.hidden = false;
       }
 
-      await loadMenus();
-      renderPhotoGallery();
-      renderGrid();
-    } catch (error) {
-      console.error('사진 추가 실패:', error);
-      alert(error.message || '사진을 추가하지 못했어요. restaurant_photos 정책을 확인해주세요.');
-      input.disabled = false;
-      label.classList.remove('is-uploading');
-      labelText.textContent = '사진 추가';
-      input.value = '';
-    }
-  }
+      function renderRestaurantMap() {
+        const visibleMenus = filteredSortedMenus().filter(menu =>
+          Number.isFinite(menu.latitude) && Number.isFinite(menu.longitude)
+        );
+        restaurantMapCount.textContent = `${visibleMenus.length}곳`;
 
-  async function loadMenus() {
-    let [restaurantsResult, votesResult, reviewsResult, photosResult] = await Promise.all([
-      window.todayBapDb
-        .from('restaurants')
-        .select('id, name, category, address, latitude, longitude, description, photo_url, created_by, created_at, updated_at')
-        .order('created_at', {
-          ascending: false,
-          nullsFirst: false
-        }),
-      window.todayBapDb
-        .from('restaurant_votes')
-        .select('restaurant_id, client_id, vote'),
-      window.todayBapDb
-        .from('reviews')
-        .select('id, restaurant_id, author_name, content, image_path, client_id, created_at, parent_id')
-        .order('created_at', { ascending: true }),
-      window.todayBapDb
-        .from('restaurant_photos')
-        .select('id, restaurant_id, image_path, client_id, author_name, created_at')
-        .order('created_at', { ascending: true })
-    ]);
+        if (!restaurantMap) return;
+        clearRestaurantMarkers();
+        mapSelection.hidden = true;
 
-    const coordinateColumnError = restaurantsResult.error
-      && /latitude|longitude/i.test(`${restaurantsResult.error.message || ''} ${restaurantsResult.error.details || ''}`);
-    if (coordinateColumnError) {
-      coordinateColumnsAvailable = false;
-      console.warn('지도 좌표 컬럼이 없어 식당 목록만 불러옵니다.');
-      restaurantsResult = await window.todayBapDb
-        .from('restaurants')
-        .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
-        .order('created_at', { ascending: false, nullsFirst: false });
-    } else {
-      coordinateColumnsAvailable = true;
-    }
+        if (!coordinateColumnsAvailable) {
+          showMapMessage('restaurants 테이블에 latitude와 longitude 컬럼을 추가하면 위치가 표시돼요.');
+          return;
+        }
+        if (visibleMenus.length === 0) {
+          showMapMessage('아직 지도 위치가 등록된 식당이 없어요. 식당 주소를 저장하면 자동으로 표시돼요.');
+          return;
+        }
 
-    if (restaurantsResult.error) {
-      console.error('Supabase 맛집 조회 실패:', restaurantsResult.error);
-      menus = [];
-      pickerSub.textContent = 'DB 연결 실패 · 개발자 콘솔을 확인해주세요';
-      return;
-    }
+        restaurantMapMessage.hidden = true;
+        const bounds = window.L.latLngBounds([]);
+        visibleMenus.forEach(menu => {
+          const position = [menu.latitude, menu.longitude];
+          const marker = window.L.marker(position, {
+            title: menu.name,
+            alt: `${menu.name} 위치`,
+            icon: markerIcon(menu)
+          }).addTo(restaurantMap);
+          const entry = { menu, marker };
+          marker.on('click', () => selectRestaurantMarker(entry));
+          restaurantMarkers.push(entry);
+          bounds.extend(position);
+        });
 
-    if (votesResult.error) {
-      console.error('Supabase 추천 조회 실패:', votesResult.error);
-    }
-    if (reviewsResult.error) {
-      console.error('Supabase 리뷰 조회 실패:', reviewsResult.error);
-    }
-    if (photosResult.error) {
-      console.error('Supabase 식당 사진 조회 실패:', photosResult.error);
-    }
+        if (visibleMenus.length === 1) {
+          restaurantMap.setView(bounds.getCenter(), 16);
+        } else {
+          restaurantMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 16 });
+        }
+      }
 
-    const voteStatsByRestaurant = new Map();
-    const myVoteByRestaurant = new Map();
-    (votesResult.data || []).forEach(item => {
-      const stats = voteStatsByRestaurant.get(item.restaurant_id) || { up: 0, down: 0 };
-      if (Number(item.vote) === 1) stats.up += 1;
-      if (Number(item.vote) === -1) stats.down += 1;
-      voteStatsByRestaurant.set(item.restaurant_id, stats);
-      if (item.client_id === clientId) myVoteByRestaurant.set(item.restaurant_id, Number(item.vote));
-    });
+      function initializeRestaurantMap() {
+        try {
+          if (!window.L) throw new Error('Leaflet을 불러오지 못했어요.');
+          const firstLocatedMenu = menus.find(menu =>
+            Number.isFinite(menu.latitude) && Number.isFinite(menu.longitude)
+          );
+          restaurantMap = window.L.map(restaurantMapEl, { zoomControl: true }).setView(
+            [firstLocatedMenu?.latitude || 37.5666103, firstLocatedMenu?.longitude || 126.9783882],
+            firstLocatedMenu ? 16 : 13
+          );
+          window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(restaurantMap);
+          renderRestaurantMap();
+          requestAnimationFrame(() => restaurantMap.invalidateSize());
+        } catch (error) {
+          console.error('지도 초기화 실패:', error);
+          showMapMessage('지도를 불러오지 못했어요. 인터넷 연결을 확인해주세요.');
+        }
+      }
 
-    const reviewsByRestaurant = new Map();
-    (reviewsResult.data || []).forEach(review => {
-      const restaurantReviews = reviewsByRestaurant.get(review.restaurant_id) || [];
-      restaurantReviews.push({
-        id: review.id,
-        author: review.author_name || '익명',
-        text: review.content,
-        imagePath: review.image_path || '',
-        clientId: review.client_id || '',
-        owned: Boolean(review.client_id && review.client_id === clientId),
-        date: review.created_at,
-        parentId: review.parent_id || null
-      });
-      reviewsByRestaurant.set(review.restaurant_id, restaurantReviews);
-    });
+      function restaurantPhotoUrl(photoValue) {
+        if (!photoValue) return '';
+        if (/^(https?:|data:|blob:)/i.test(photoValue)) return photoValue;
+        return window.todayBapDb.storage
+          .from(RESTAURANT_IMAGE_BUCKET)
+          .getPublicUrl(photoValue).data.publicUrl;
+      }
 
-    const photosByRestaurant = new Map();
-    (photosResult.data || []).forEach(photo => {
-      const restaurantPhotos = photosByRestaurant.get(photo.restaurant_id) || [];
-      restaurantPhotos.push({
-        id: photo.id,
-        imagePath: photo.image_path,
-        url: restaurantPhotoUrl(photo.image_path),
-        author: photo.author_name || '익명',
-        owned: Boolean(photo.client_id && photo.client_id === clientId),
-        date: photo.created_at
-      });
-      photosByRestaurant.set(photo.restaurant_id, restaurantPhotos);
-    });
+      async function compressRestaurantPhoto(file) {
+        if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+          throw new Error('JPG, PNG, WebP 형식의 사진만 등록할 수 있어요.');
+        }
+        if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+          throw new Error('원본 사진은 10MB 이하만 선택할 수 있어요.');
+        }
 
-    let localMenus = [];
-    try {
-      localMenus = JSON.parse(localStorage.getItem(MENU_KEY) || '[]');
-    } catch (e) {
-      console.warn('개인 뽑기 설정을 읽지 못했습니다.', e);
-    }
-    const localMenuById = new Map(localMenus.map(m => [m.id, m]));
+        const bitmap = await createImageBitmap(file);
+        const maxSide = 1600;
+        const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        const context = canvas.getContext('2d');
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
 
-    menus = (restaurantsResult.data || []).map(m => {
-      const local = localMenuById.get(m.id) || {};
-      return {
-        id: m.id,
-        name: m.name,
-        category: m.category,
-        address: m.address || '',
-        latitude: m.latitude == null ? null : Number(m.latitude),
-        longitude: m.longitude == null ? null : Number(m.longitude),
-        review: m.description || '',
-        photo: restaurantPhotoUrl(m.photo_url),
-        photoPath: m.photo_url || '',
-        createdBy: m.created_by || '',
-        createdAt: m.created_at || '',
-        excluded: Boolean(local.excluded),
-        upVotes: voteStatsByRestaurant.get(m.id)?.up || 0,
-        downVotes: voteStatsByRestaurant.get(m.id)?.down || 0,
-        voteScore: (voteStatsByRestaurant.get(m.id)?.up || 0) - (voteStatsByRestaurant.get(m.id)?.down || 0),
-        myVote: myVoteByRestaurant.get(m.id) || 0,
-        comments: reviewsByRestaurant.get(m.id) || [],
-        photos: photosByRestaurant.get(m.id) || []
-      };
-    });
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
+        if (!blob) throw new Error('사진을 압축하지 못했어요. 다른 사진을 선택해주세요.');
+        if (blob.size > MAX_UPLOAD_IMAGE_BYTES) {
+          throw new Error('압축 후 사진이 5MB를 넘어요. 더 작은 사진을 선택해주세요.');
+        }
+        return blob;
+      }
 
-    const failedParts = [];
-    if (votesResult.error) failedParts.push('추천');
-    if (reviewsResult.error) failedParts.push('리뷰');
-    if (photosResult.error) failedParts.push('사진');
-    if (restaurantMap) renderRestaurantMap();
-  }
+      async function uploadRestaurantGalleryPhoto(input, menu) {
+        const file = input.files && input.files[0];
+        if (!file) return;
 
-  async function saveMenus() {
-    try {
-      localStorage.setItem(MENU_KEY, JSON.stringify(menus));
-    } catch (e) { console.error('임시 로컬 메뉴 상태 저장 실패', e); }
-  }
+        const label = input.closest('.photo-upload-label');
+        const labelText = label.querySelector('[data-role="photo-upload-label"]');
+        input.disabled = true;
+        label.classList.add('is-uploading');
+        labelText.textContent = '업로드 중…';
 
-  async function loadHistory() {
-    const { data, error } = await window.todayBapDb
-      .from('lunch_history')
-      .select('id, eaten_date, restaurant_id, restaurant_name, created_by, created_at, updated_at')
-      .order('eaten_date', { ascending: true });
+        try {
+          const compressedPhoto = await compressRestaurantPhoto(file);
+          const imagePath = `restaurants/${menu.id}/${crypto.randomUUID()}.webp`;
+          const { error: uploadError } = await window.todayBapDb.storage
+            .from(RESTAURANT_IMAGE_BUCKET)
+            .upload(imagePath, compressedPhoto, {
+              contentType: 'image/webp',
+              cacheControl: '3600',
+              upsert: false
+            });
+          if (uploadError) throw uploadError;
 
-    if (error) {
-      console.error('공용 점심 기록 조회 실패:', error);
-      history = [];
-      historyStatus.textContent = '점심 기록을 불러오지 못했어요. lunch_history RLS 정책을 확인해주세요.';
-      return;
-    }
+          const { error: insertError } = await window.todayBapDb
+            .from('restaurant_photos')
+            .insert({
+              restaurant_id: menu.id,
+              image_path: imagePath,
+              client_id: clientId,
+              author_name: '익명',
+              created_at: new Date().toISOString()
+            });
+          if (insertError) {
+            await window.todayBapDb.storage.from(RESTAURANT_IMAGE_BUCKET).remove([imagePath]);
+            throw insertError;
+          }
 
-    history = (data || []).map(entry => ({
-      id: entry.id,
-      date: entry.eaten_date,
-      restaurantId: entry.restaurant_id,
-      name: entry.restaurant_name,
-      createdBy: entry.created_by || '익명',
-      createdAt: entry.created_at,
-      updatedAt: entry.updated_at
-    }));
-    historyStatus.textContent = '';
-  }
+          await loadMenus();
+          renderPhotoGallery();
+          renderGrid();
+        } catch (error) {
+          console.error('사진 추가 실패:', error);
+          alert(error.message || '사진을 추가하지 못했어요. restaurant_photos 정책을 확인해주세요.');
+          input.disabled = false;
+          label.classList.remove('is-uploading');
+          labelText.textContent = '사진 추가';
+          input.value = '';
+        }
+      }
 
-  async function saveHistory(menu, date = todayStr()) {
-    const timestamp = new Date().toISOString();
-    const existingEntry = history.find(entry => entry.date === date);
-    const { error } = await window.todayBapDb
-      .from('lunch_history')
-      .upsert({
-        eaten_date: date,
-        restaurant_id: menu.id,
-        restaurant_name: menu.name,
-        created_by: '익명',
-        created_at: existingEntry?.createdAt || timestamp,
-        updated_at: timestamp
-      }, { onConflict: 'eaten_date' });
+      async function loadMenus() {
+        let [restaurantsResult, votesResult, reviewsResult, photosResult] = await Promise.all([
+          window.todayBapDb
+            .from('restaurants')
+            .select('id, name, category, address, latitude, longitude, description, photo_url, created_by, created_at, updated_at')
+            .order('created_at', {
+              ascending: false,
+              nullsFirst: false
+            }),
+          window.todayBapDb
+            .from('restaurant_votes')
+            .select('restaurant_id, client_id, vote'),
+          window.todayBapDb
+            .from('reviews')
+            .select('id, restaurant_id, author_name, content, image_path, client_id, created_at, parent_id')
+            .order('created_at', { ascending: true }),
+          window.todayBapDb
+            .from('restaurant_photos')
+            .select('id, restaurant_id, image_path, client_id, author_name, created_at')
+            .order('created_at', { ascending: true })
+        ]);
 
-    if (error) {
-      console.error('공용 점심 기록 저장 실패:', error);
-      throw error;
-    }
-  }
+        const coordinateColumnError = restaurantsResult.error
+          && /latitude|longitude/i.test(`${restaurantsResult.error.message || ''} ${restaurantsResult.error.details || ''}`);
+        if (coordinateColumnError) {
+          coordinateColumnsAvailable = false;
+          console.warn('지도 좌표 컬럼이 없어 식당 목록만 불러옵니다.');
+          restaurantsResult = await window.todayBapDb
+            .from('restaurants')
+            .select('id, name, category, address, description, photo_url, created_by, created_at, updated_at')
+            .order('created_at', { ascending: false, nullsFirst: false });
+        } else {
+          coordinateColumnsAvailable = true;
+        }
 
-  function formatLocalDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
+        if (restaurantsResult.error) {
+          console.error('Supabase 맛집 조회 실패:', restaurantsResult.error);
+          menus = [];
+          pickerSub.textContent = 'DB 연결 실패 · 개발자 콘솔을 확인해주세요';
+          return;
+        }
 
-  function todayStr(offsetDays = 0) {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    return formatLocalDate(d);
-  }
+        if (votesResult.error) {
+          console.error('Supabase 추천 조회 실패:', votesResult.error);
+        }
+        if (reviewsResult.error) {
+          console.error('Supabase 리뷰 조회 실패:', reviewsResult.error);
+        }
+        if (photosResult.error) {
+          console.error('Supabase 식당 사진 조회 실패:', photosResult.error);
+        }
 
-  function getMonday() {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
-  }
+        const voteStatsByRestaurant = new Map();
+        const myVoteByRestaurant = new Map();
+        (votesResult.data || []).forEach(item => {
+          const stats = voteStatsByRestaurant.get(item.restaurant_id) || { up: 0, down: 0 };
+          if (Number(item.vote) === 1) stats.up += 1;
+          if (Number(item.vote) === -1) stats.down += 1;
+          voteStatsByRestaurant.set(item.restaurant_id, stats);
+          if (item.client_id === clientId) myVoteByRestaurant.set(item.restaurant_id, Number(item.vote));
+        });
 
-  function thisWeekDates() {
-    const monday = getMonday();
-    const out = [];
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      out.push(formatLocalDate(d));
-    }
-    return out;
-  }
+        const reviewsByRestaurant = new Map();
+        (reviewsResult.data || []).forEach(review => {
+          const restaurantReviews = reviewsByRestaurant.get(review.restaurant_id) || [];
+          restaurantReviews.push({
+            id: review.id,
+            author: review.author_name || '익명',
+            text: review.content,
+            imagePath: review.image_path || '',
+            clientId: review.client_id || '',
+            owned: Boolean(review.client_id && review.client_id === clientId),
+            date: review.created_at,
+            parentId: review.parent_id || null
+          });
+          reviewsByRestaurant.set(review.restaurant_id, restaurantReviews);
+        });
 
-  function renderWeekStrip() {
-    const dates = thisWeekDates();
-    const labels = ['월', '화', '수', '목', '금'];
-    const today = todayStr();
-    weekStrip.innerHTML = '';
-    dates.forEach((date, i) => {
-      const entry = [...history].reverse().find(h => h.date === date);
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.className = 'week-day' + (date === today ? ' today' : '');
-      el.dataset.date = date;
-      el.setAttribute('aria-label', `${labels[i]}요일 ${entry ? entry.name : '미정'}, 점심 기록 선택`);
-      el.innerHTML = `
+        const photosByRestaurant = new Map();
+        (photosResult.data || []).forEach(photo => {
+          const restaurantPhotos = photosByRestaurant.get(photo.restaurant_id) || [];
+          restaurantPhotos.push({
+            id: photo.id,
+            imagePath: photo.image_path,
+            url: restaurantPhotoUrl(photo.image_path),
+            author: photo.author_name || '익명',
+            owned: Boolean(photo.client_id && photo.client_id === clientId),
+            date: photo.created_at
+          });
+          photosByRestaurant.set(photo.restaurant_id, restaurantPhotos);
+        });
+
+        let localMenus = [];
+        try {
+          localMenus = JSON.parse(localStorage.getItem(MENU_KEY) || '[]');
+        } catch (e) {
+          console.warn('개인 뽑기 설정을 읽지 못했습니다.', e);
+        }
+        const localMenuById = new Map(localMenus.map(m => [m.id, m]));
+
+        menus = (restaurantsResult.data || []).map(m => {
+          const local = localMenuById.get(m.id) || {};
+          return {
+            id: m.id,
+            name: m.name,
+            category: m.category,
+            address: m.address || '',
+            latitude: m.latitude == null ? null : Number(m.latitude),
+            longitude: m.longitude == null ? null : Number(m.longitude),
+            review: m.description || '',
+            photo: restaurantPhotoUrl(m.photo_url),
+            photoPath: m.photo_url || '',
+            createdBy: m.created_by || '',
+            createdAt: m.created_at || '',
+            excluded: Boolean(local.excluded),
+            upVotes: voteStatsByRestaurant.get(m.id)?.up || 0,
+            downVotes: voteStatsByRestaurant.get(m.id)?.down || 0,
+            voteScore: (voteStatsByRestaurant.get(m.id)?.up || 0) - (voteStatsByRestaurant.get(m.id)?.down || 0),
+            myVote: myVoteByRestaurant.get(m.id) || 0,
+            comments: reviewsByRestaurant.get(m.id) || [],
+            photos: photosByRestaurant.get(m.id) || []
+          };
+        });
+
+        const failedParts = [];
+        if (votesResult.error) failedParts.push('추천');
+        if (reviewsResult.error) failedParts.push('리뷰');
+        if (photosResult.error) failedParts.push('사진');
+        if (restaurantMap) renderRestaurantMap();
+      }
+
+      async function saveMenus() {
+        try {
+          localStorage.setItem(MENU_KEY, JSON.stringify(menus));
+        } catch (e) { console.error('임시 로컬 메뉴 상태 저장 실패', e); }
+      }
+
+      async function loadHistory() {
+        const { data, error } = await window.todayBapDb
+          .from('lunch_history')
+          .select('id, eaten_date, restaurant_id, restaurant_name, created_by, created_at, updated_at')
+          .order('eaten_date', { ascending: true });
+
+        if (error) {
+          console.error('공용 점심 기록 조회 실패:', error);
+          history = [];
+          historyStatus.textContent = '점심 기록을 불러오지 못했어요. lunch_history RLS 정책을 확인해주세요.';
+          return;
+        }
+
+        history = (data || []).map(entry => ({
+          id: entry.id,
+          date: entry.eaten_date,
+          restaurantId: entry.restaurant_id,
+          name: entry.restaurant_name,
+          createdBy: entry.created_by || '익명',
+          createdAt: entry.created_at,
+          updatedAt: entry.updated_at
+        }));
+        historyStatus.textContent = '';
+      }
+
+      async function saveHistory(menu, date = todayStr()) {
+        const timestamp = new Date().toISOString();
+        const existingEntry = history.find(entry => entry.date === date);
+        const { error } = await window.todayBapDb
+          .from('lunch_history')
+          .upsert({
+            eaten_date: date,
+            restaurant_id: menu.id,
+            restaurant_name: menu.name,
+            created_by: '익명',
+            created_at: existingEntry?.createdAt || timestamp,
+            updated_at: timestamp
+          }, { onConflict: 'eaten_date' });
+
+        if (error) {
+          console.error('공용 점심 기록 저장 실패:', error);
+          throw error;
+        }
+      }
+
+      function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function todayStr(offsetDays = 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        return formatLocalDate(d);
+      }
+
+      function getMonday() {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+      }
+
+      function thisWeekDates() {
+        const monday = getMonday();
+        const out = [];
+        for (let i = 0; i < 5; i++) {
+          const d = new Date(monday);
+          d.setDate(monday.getDate() + i);
+          out.push(formatLocalDate(d));
+        }
+        return out;
+      }
+
+      function renderWeekStrip() {
+        const dates = thisWeekDates();
+        const labels = ['월', '화', '수', '목', '금'];
+        const today = todayStr();
+        weekStrip.innerHTML = '';
+        dates.forEach((date, i) => {
+          const entry = [...history].reverse().find(h => h.date === date);
+          const el = document.createElement('button');
+          el.type = 'button';
+          el.className = 'week-day' + (date === today ? ' today' : '');
+          el.dataset.date = date;
+          el.setAttribute('aria-label', `${labels[i]}요일 ${entry ? entry.name : '미정'}, 점심 기록 선택`);
+          el.innerHTML = `
         <div class="label">${labels[i]}</div>
         <div class="value ${entry ? '' : 'empty'}">${entry ? entry.name : '미정'}</div>
       `;
-      weekStrip.appendChild(el);
-    });
-  }
+          weekStrip.appendChild(el);
+        });
+      }
 
-  function openMealRecordDialog(date) {
-    selectedHistoryDate = date;
-    const selectedDate = new Date(`${date}T00:00:00`);
-    const weekday = ['일', '월', '화', '수', '목', '금', '토'][selectedDate.getDay()];
-    const existingEntry = history.find(entry => entry.date === date);
-    const sortedMenus = [...menus].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+      function openMealRecordDialog(date) {
+        selectedHistoryDate = date;
+        const selectedDate = new Date(`${date}T00:00:00`);
+        const weekday = ['일', '월', '화', '수', '목', '금', '토'][selectedDate.getDay()];
+        const existingEntry = history.find(entry => entry.date === date);
+        const sortedMenus = [...menus].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 
-    mealRecordDialogTitle.textContent = `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 (${weekday}) 점심`;
-    mealRecordRestaurant.innerHTML = '<option value="">식당을 선택해주세요</option>'
-      + sortedMenus
-        .map(menu => `<option value="${menu.id}">${escapeHtml(menu.name)} · ${escapeHtml(menu.category || '기타')}</option>`)
-        .join('');
-    mealRecordRestaurant.value = existingEntry?.restaurantId || '';
-    mealRecordStatus.textContent = sortedMenus.length ? '' : '먼저 식당을 등록해주세요.';
-    mealRecordSubmitBtn.disabled = sortedMenus.length === 0;
-    mealRecordDialog.showModal();
-    mealRecordRestaurant.focus();
-  }
+        mealRecordDialogTitle.textContent = `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 (${weekday}) 점심`;
+        mealRecordRestaurant.innerHTML = '<option value="">식당을 선택해주세요</option>'
+          + sortedMenus
+            .map(menu => `<option value="${menu.id}">${escapeHtml(menu.name)} · ${escapeHtml(menu.category || '기타')}</option>`)
+            .join('');
+        mealRecordRestaurant.value = existingEntry?.restaurantId || '';
+        mealRecordStatus.textContent = sortedMenus.length ? '' : '먼저 식당을 등록해주세요.';
+        mealRecordSubmitBtn.disabled = sortedMenus.length === 0;
+        mealRecordDialog.showModal();
+        mealRecordRestaurant.focus();
+      }
 
-  function renderCalendar() {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDate = new Date(year, month + 1, 0).getDate();
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    const historyByDate = new Map(history.map(entry => [entry.date, entry]));
+      function renderCalendar() {
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+        const historyByDate = new Map(history.map(entry => [entry.date, entry]));
 
-    calendarMonthTitle.textContent = `${year}년 ${month + 1}월`;
-    calendarGrid.innerHTML = weekdays
-      .map(day => `<div class="calendar-weekday">${day}</div>`)
-      .join('');
+        calendarMonthTitle.textContent = `${year}년 ${month + 1}월`;
+        calendarGrid.innerHTML = weekdays
+          .map(day => `<div class="calendar-weekday">${day}</div>`)
+          .join('');
 
-    for (let i = 0; i < firstDay.getDay(); i++) {
-      calendarGrid.insertAdjacentHTML('beforeend', '<div class="calendar-day blank" aria-hidden="true"></div>');
-    }
+        for (let i = 0; i < firstDay.getDay(); i++) {
+          calendarGrid.insertAdjacentHTML('beforeend', '<div class="calendar-day blank" aria-hidden="true"></div>');
+        }
 
-    for (let day = 1; day <= lastDate; day++) {
-      const date = formatLocalDate(new Date(year, month, day));
-      const entry = historyByDate.get(date);
-      const todayClass = date === todayStr() ? ' today' : '';
-      calendarGrid.insertAdjacentHTML('beforeend', `
+        for (let day = 1; day <= lastDate; day++) {
+          const date = formatLocalDate(new Date(year, month, day));
+          const entry = historyByDate.get(date);
+          const todayClass = date === todayStr() ? ' today' : '';
+          calendarGrid.insertAdjacentHTML('beforeend', `
         <div class="calendar-day${todayClass}" title="${entry ? `${escapeHtml(entry.name)} · ${escapeHtml(entry.createdBy)}` : date}">
           <div class="calendar-date">${day}</div>
           ${entry ? `<span class="calendar-meal">${escapeHtml(entry.name)}</span>` : ''}
         </div>
       `);
-    }
-  }
+        }
+      }
 
-  function selectHistoryTab(tabName) {
-    const isWeek = tabName === 'week';
-    document.getElementById('weekHistoryTab').classList.toggle('active', isWeek);
-    document.getElementById('calendarHistoryTab').classList.toggle('active', !isWeek);
-    document.getElementById('weekHistoryTab').setAttribute('aria-selected', String(isWeek));
-    document.getElementById('calendarHistoryTab').setAttribute('aria-selected', String(!isWeek));
-    document.getElementById('weekHistoryPanel').hidden = !isWeek;
-    document.getElementById('calendarHistoryPanel').hidden = isWeek;
-    if (!isWeek) renderCalendar();
-  }
+      function selectHistoryTab(tabName) {
+        const isWeek = tabName === 'week';
+        document.getElementById('weekHistoryTab').classList.toggle('active', isWeek);
+        document.getElementById('calendarHistoryTab').classList.toggle('active', !isWeek);
+        document.getElementById('weekHistoryTab').setAttribute('aria-selected', String(isWeek));
+        document.getElementById('calendarHistoryTab').setAttribute('aria-selected', String(!isWeek));
+        document.getElementById('weekHistoryPanel').hidden = !isWeek;
+        document.getElementById('calendarHistoryPanel').hidden = isWeek;
+        if (!isWeek) renderCalendar();
+      }
 
-  function renderStats() {
-    const total = menus.length;
-    statRow.innerHTML = `
+      function renderStats() {
+        const total = menus.length;
+        statRow.innerHTML = `
       <div class="stat-chip">등록된 메뉴 <b>${total}곳</b></div>
     `;
-  }
+      }
 
-  function renderCategoryChips() {
-    const cats = ['전체', ...new Set(menus.map(m => m.category))];
-    categoryChipsEl.innerHTML = '';
-    cats.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.className = 'chip' + (cat === activeCategory ? ' active' : '');
-      btn.textContent = cat === '전체' ? '전체' : `${CATEGORY_EMOJI[cat] || ''} ${cat}`;
-      btn.addEventListener('click', () => {
-        activeCategory = cat;
-        renderCategoryChips();
-        renderGrid();
-        renderRestaurantMap();
-      });
-      categoryChipsEl.appendChild(btn);
-    });
-  }
-
-  function filteredSortedMenus() {
-    let list = menus.filter(m => {
-      if (activeCategory !== '전체' && m.category !== activeCategory) return false;
-      if (searchTerm && !m.name.includes(searchTerm)) return false;
-      return true;
-    });
-    if (sortMode === 'votes') {
-      list = [...list].sort((a, b) =>
-        b.voteScore - a.voteScore || b.upVotes - a.upVotes
-      );
-    }
-    if (sortMode === 'reviews') {
-      list = [...list].sort((a, b) =>
-        (b.comments || []).filter(comment => comment.text?.trim()).length
-        - (a.comments || []).filter(comment => comment.text?.trim()).length
-        || b.voteScore - a.voteScore
-      );
-    }
-    if (sortMode === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    return list;
-  }
-
-  function isNewRestaurant(menu, now = Date.now()) {
-    const createdTime = new Date(menu.createdAt).getTime();
-    return Number.isFinite(createdTime)
-      && createdTime <= now
-      && now - createdTime < NEW_BADGE_DURATION_MS;
-  }
-
-  function scheduleNewBadgeRefresh() {
-    if (newBadgeTimer) clearTimeout(newBadgeTimer);
-    const now = Date.now();
-    const nextExpiry = Math.min(...menus
-      .map(menu => new Date(menu.createdAt).getTime() + NEW_BADGE_DURATION_MS)
-      .filter(expiry => Number.isFinite(expiry) && expiry > now));
-
-    if (Number.isFinite(nextExpiry)) {
-      newBadgeTimer = setTimeout(renderGrid, Math.max(1000, nextExpiry - now + 100));
-    }
-  }
-
-  function renderPhotoGallery() {
-    if (!photoGallery) return;
-    const photos = [];
-
-    menus.forEach(menu => {
-      if (menu.photo) {
-        photos.push({
-          url: menu.photo,
-          restaurantName: menu.name,
-          category: menu.category,
-          date: ''
+      function renderCategoryChips() {
+        const cats = ['전체', ...new Set(menus.map(m => m.category))];
+        categoryChipsEl.innerHTML = '';
+        cats.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.className = 'chip' + (cat === activeCategory ? ' active' : '');
+          btn.textContent = cat === '전체' ? '전체' : `${CATEGORY_EMOJI[cat] || ''} ${cat}`;
+          btn.addEventListener('click', () => {
+            activeCategory = cat;
+            renderCategoryChips();
+            renderGrid();
+            renderRestaurantMap();
+          });
+          categoryChipsEl.appendChild(btn);
         });
       }
-      (menu.photos || []).forEach(photo => {
-        photos.push({
-          url: photo.url,
-          restaurantName: menu.name,
-          category: menu.category,
-          date: photo.date || ''
-        });
-      });
-      (menu.comments || []).forEach(comment => {
-        if (!comment.imagePath) return;
-        photos.push({
-          url: restaurantPhotoUrl(comment.imagePath),
-          restaurantName: menu.name,
-          category: menu.category,
-          date: comment.date || ''
-        });
-      });
-    });
 
-    photos.sort((a, b) => String(b.date).localeCompare(String(a.date)));
-    if (photos.length === 0) {
-      photoGallery.innerHTML = '<div class="empty-state">아직 등록된 사진이 없어요.</div>';
-      previousPhotoBtn.disabled = true;
-      nextPhotoBtn.disabled = true;
-      return;
-    }
+      function filteredSortedMenus() {
+        let list = menus.filter(m => {
+          if (activeCategory !== '전체' && m.category !== activeCategory) return false;
+          if (searchTerm && !m.name.includes(searchTerm)) return false;
+          return true;
+        });
+        if (sortMode === 'votes') {
+          list = [...list].sort((a, b) =>
+            b.voteScore - a.voteScore || b.upVotes - a.upVotes
+          );
+        }
+        if (sortMode === 'reviews') {
+          list = [...list].sort((a, b) =>
+            (b.comments || []).filter(comment => comment.text?.trim()).length
+            - (a.comments || []).filter(comment => comment.text?.trim()).length
+            || b.voteScore - a.voteScore
+          );
+        }
+        if (sortMode === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+        return list;
+      }
 
-    photoGallery.innerHTML = photos.map(photo => `
+      function isNewRestaurant(menu, now = Date.now()) {
+        const createdTime = new Date(menu.createdAt).getTime();
+        return Number.isFinite(createdTime)
+          && createdTime <= now
+          && now - createdTime < NEW_BADGE_DURATION_MS;
+      }
+
+      function scheduleNewBadgeRefresh() {
+        if (newBadgeTimer) clearTimeout(newBadgeTimer);
+        const now = Date.now();
+        const nextExpiry = Math.min(...menus
+          .map(menu => new Date(menu.createdAt).getTime() + NEW_BADGE_DURATION_MS)
+          .filter(expiry => Number.isFinite(expiry) && expiry > now));
+
+        if (Number.isFinite(nextExpiry)) {
+          newBadgeTimer = setTimeout(renderGrid, Math.max(1000, nextExpiry - now + 100));
+        }
+      }
+
+      function renderPhotoGallery() {
+        if (!photoGallery) return;
+        const photos = [];
+
+        menus.forEach(menu => {
+          if (menu.photo) {
+            photos.push({
+              url: menu.photo,
+              restaurantName: menu.name,
+              category: menu.category,
+              date: ''
+            });
+          }
+          (menu.photos || []).forEach(photo => {
+            photos.push({
+              url: photo.url,
+              restaurantName: menu.name,
+              category: menu.category,
+              date: photo.date || ''
+            });
+          });
+          (menu.comments || []).forEach(comment => {
+            if (!comment.imagePath) return;
+            photos.push({
+              url: restaurantPhotoUrl(comment.imagePath),
+              restaurantName: menu.name,
+              category: menu.category,
+              date: comment.date || ''
+            });
+          });
+        });
+
+        photos.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        if (photos.length === 0) {
+          photoGallery.innerHTML = '<div class="empty-state">아직 등록된 사진이 없어요.</div>';
+          previousPhotoBtn.disabled = true;
+          nextPhotoBtn.disabled = true;
+          return;
+        }
+
+        photoGallery.innerHTML = photos.map(photo => `
       <div class="photo-card">
         <img src="${photo.url}" alt="${escapeHtml(photo.restaurantName)} 음식 사진" loading="lazy">
         <div class="photo-card-caption"><span class="cat-emoji">${CATEGORY_EMOJI[photo.category] || ''}</span>${escapeHtml(photo.restaurantName)}</div>
       </div>
     `).join('');
-    requestAnimationFrame(updatePhotoGalleryNavigation);
-  }
+        requestAnimationFrame(updatePhotoGalleryNavigation);
+      }
 
-  function updatePhotoGalleryNavigation() {
-    const maxScroll = Math.max(0, photoGallery.scrollWidth - photoGallery.clientWidth);
-    previousPhotoBtn.disabled = photoGallery.scrollLeft <= 2;
-    nextPhotoBtn.disabled = photoGallery.scrollLeft >= maxScroll - 2 || maxScroll === 0;
-  }
+      function updatePhotoGalleryNavigation() {
+        const maxScroll = Math.max(0, photoGallery.scrollWidth - photoGallery.clientWidth);
+        previousPhotoBtn.disabled = photoGallery.scrollLeft <= 2;
+        nextPhotoBtn.disabled = photoGallery.scrollLeft >= maxScroll - 2 || maxScroll === 0;
+      }
 
-  function updateCardPhotoCount(track) {
-    if (!track || !track.clientWidth) return;
-    const count = track.closest('.card-photo-area').querySelector('[data-role="card-photo-count"]');
-    if (!count) return;
-    const total = track.children.length;
-    const current = Math.min(total, Math.max(1, Math.round(track.scrollLeft / track.clientWidth) + 1));
-    count.textContent = `${current} / ${total}`;
-  }
+      function updateCardPhotoCount(track) {
+        if (!track || !track.clientWidth) return;
+        const count = track.closest('.card-photo-area').querySelector('[data-role="card-photo-count"]');
+        if (!count) return;
+        const total = track.children.length;
+        const current = Math.min(total, Math.max(1, Math.round(track.scrollLeft / track.clientWidth) + 1));
+        count.textContent = `${current} / ${total}`;
+      }
 
-  function renderGrid() {
-    const list = filteredSortedMenus();
-    scheduleNewBadgeRefresh();
-    grid.innerHTML = '';
-    if (list.length === 0) {
-      grid.innerHTML = '<div class="empty-state">조건에 맞는 곳이 없어요. 필터를 바꿔보세요.</div>';
-      return;
-    }
-    list.forEach(m => {
-      const showNewBadge = isNewRestaurant(m);
-      const card = document.createElement('div');
-      card.className = 'card' + (m.excluded ? ' excluded' : '');
-      const cardPhotos = [];
-      if (m.photo) cardPhotos.push({
-        url: m.photo,
-        alt: `${m.name} 음식 사진`,
-        reviewId: '',
-        photoId: '',
-        imagePath: m.photoPath,
-        cover: true,
-        owned: false
-      });
-      (m.photos || []).forEach(photo => {
-        cardPhotos.push({
-          url: photo.url,
-          alt: `${m.name} 등록 사진`,
-          reviewId: '',
-          photoId: photo.id,
-          imagePath: photo.imagePath,
-          owned: photo.owned
-        });
-      });
-      (m.comments || []).forEach(comment => {
-        if (comment.imagePath) {
-          cardPhotos.push({
-            url: restaurantPhotoUrl(comment.imagePath),
-            alt: `${m.name} 등록 사진`,
-            reviewId: comment.id,
-            photoId: '',
-            imagePath: comment.imagePath,
-            owned: comment.owned
-          });
+      function renderGrid() {
+        const list = filteredSortedMenus();
+        scheduleNewBadgeRefresh();
+        grid.innerHTML = '';
+        if (list.length === 0) {
+          grid.innerHTML = '<div class="empty-state">조건에 맞는 곳이 없어요. 필터를 바꿔보세요.</div>';
+          return;
         }
-      });
-      const cardPhotosHtml = cardPhotos.map(photo => `
+        list.forEach(m => {
+          const showNewBadge = isNewRestaurant(m);
+          const card = document.createElement('div');
+          card.className = 'card' + (m.excluded ? ' excluded' : '');
+          const cardPhotos = [];
+          if (m.photo) cardPhotos.push({
+            url: m.photo,
+            alt: `${m.name} 음식 사진`,
+            reviewId: '',
+            photoId: '',
+            imagePath: m.photoPath,
+            cover: true,
+            owned: false
+          });
+          (m.photos || []).forEach(photo => {
+            cardPhotos.push({
+              url: photo.url,
+              alt: `${m.name} 등록 사진`,
+              reviewId: '',
+              photoId: photo.id,
+              imagePath: photo.imagePath,
+              owned: photo.owned
+            });
+          });
+          (m.comments || []).forEach(comment => {
+            if (comment.imagePath) {
+              cardPhotos.push({
+                url: restaurantPhotoUrl(comment.imagePath),
+                alt: `${m.name} 등록 사진`,
+                reviewId: comment.id,
+                photoId: '',
+                imagePath: comment.imagePath,
+                owned: comment.owned
+              });
+            }
+          });
+          const cardPhotosHtml = cardPhotos.map(photo => `
         <div class="card-photo-slide">
           <img class="card-photo" src="${photo.url}" alt="${escapeHtml(photo.alt)}" loading="lazy">
           ${photo.reviewId && photo.owned ? `
@@ -1144,13 +2586,13 @@
           ` : ''}
         </div>
       `).join('');
-      const textComments = (m.comments || []).filter(comment => comment.text?.trim());
-      let commentsHtml = '';
-      if (textComments.length > 0) {
-        const rootComments = textComments.filter(c => !c.parentId);
-        commentsHtml = rootComments.map(c => {
-          const replies = textComments.filter(reply => reply.parentId === c.id);
-          const replyHtml = replies.map(r => `
+          const textComments = (m.comments || []).filter(comment => comment.text?.trim());
+          let commentsHtml = '';
+          if (textComments.length > 0) {
+            const rootComments = textComments.filter(c => !c.parentId);
+            commentsHtml = rootComments.map(c => {
+              const replies = textComments.filter(reply => reply.parentId === c.id);
+              const replyHtml = replies.map(r => `
             <div class="comment-item is-reply">
               <div class="comment-copy">
                 <div><b>${escapeHtml(r.author || '익명')}</b>${escapeHtml(r.text)}</div>
@@ -1168,7 +2610,7 @@
             </div>
           `).join('');
 
-          return `
+              return `
             <div class="comment-item">
               <div class="comment-copy">
                 <div><b>${escapeHtml(c.author || '익명')}</b>${escapeHtml(c.text)}<button type="button" class="comment-reply-btn" data-id="${m.id}" data-review-id="${c.id}" data-action="comment-reply">답글 달기</button></div>
@@ -1186,17 +2628,17 @@
             </div>
             ${replyHtml}
           `;
-        }).join('');
-      } else {
-        commentsHtml = '<div class="comment-empty">아직 댓글이 없어요. 먼저 남겨보세요.</div>';
-      }
-      card.innerHTML = `
+            }).join('');
+          } else {
+            commentsHtml = '<div class="comment-empty">아직 댓글이 없어요. 먼저 남겨보세요.</div>';
+          }
+          card.innerHTML = `
       <div class="card-photo-area">
         ${showNewBadge ? '<span class="new-badge">NEW</span>' : ''}
 
     ${cardPhotos.length
-      ? `<div class="card-photo-track" data-role="card-photo-track">${cardPhotosHtml}</div>`
-      : '<div class="card-photo-empty">등록된 사진이 없어요</div>'}
+              ? `<div class="card-photo-track" data-role="card-photo-track">${cardPhotosHtml}</div>`
+              : '<div class="card-photo-empty">등록된 사진이 없어요</div>'}
 
           ${cardPhotos.length > 1 ? `
             <button class="card-photo-nav previous" type="button" data-id="${m.id}" data-action="card-photo-previous" aria-label="${m.name} 이전 사진">‹</button>
@@ -1244,819 +2686,848 @@
           </label>
         </div>
       `;
-      grid.appendChild(card);
-    });
-  }
-
-  grid.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const id = btn.dataset.id;
-    const m = menus.find(x => x.id === id);
-    if (!m) return;
-    if (btn.dataset.action === 'card-photo-previous' || btn.dataset.action === 'card-photo-next') {
-      const track = btn.closest('.card-photo-area').querySelector('[data-role="card-photo-track"]');
-      const direction = btn.dataset.action === 'card-photo-previous' ? -1 : 1;
-      track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
-      return;
-    }
-    if (btn.dataset.action === 'restaurant-cover-photo-delete') {
-      if (!m.photoPath || !confirm('첫 번째 사진을 삭제할까요?')) return;
-
-      btn.disabled = true;
-      const { error } = await window.todayBapDb
-        .from('restaurants')
-        .update({ photo_url: null, updated_at: new Date().toISOString() })
-        .eq('id', m.id);
-      if (error) {
-        console.error('첫 사진 삭제 실패:', error);
-        alert('첫 사진을 삭제하지 못했어요. restaurants UPDATE 정책을 확인해주세요.');
-        btn.disabled = false;
-        return;
+          grid.appendChild(card);
+        });
       }
 
-      if (!/^(https?:|data:|blob:)/i.test(m.photoPath)) {
-        const { error: imageDeleteError } = await window.todayBapDb.storage
-          .from(RESTAURANT_IMAGE_BUCKET)
-          .remove([m.photoPath]);
-        if (imageDeleteError) console.warn('Storage 첫 사진 삭제 실패:', imageDeleteError);
-      }
-
-      await loadMenus();
-      renderPhotoGallery();
-      renderGrid();
-      return;
-    }
-    if (btn.dataset.action === 'review-photo-delete') {
-      const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
-      if (!review || !review.owned || !review.imagePath) return;
-      if (!confirm('이 사진을 삭제할까요?')) return;
-
-      btn.disabled = true;
-      const query = review.text?.trim()
-        ? window.todayBapDb.from('reviews').update({ image_path: null })
-        : window.todayBapDb.from('reviews').delete();
-      const { error } = await query.eq('id', review.id).eq('client_id', clientId);
-      if (error) {
-        console.error('등록 사진 삭제 실패:', error);
-        alert('사진을 삭제하지 못했어요. RLS 정책을 확인해주세요.');
-        btn.disabled = false;
-        return;
-      }
-
-      const { error: imageDeleteError } = await window.todayBapDb.storage
-        .from(RESTAURANT_IMAGE_BUCKET)
-        .remove([review.imagePath]);
-      if (imageDeleteError) console.warn('Storage 사진 삭제 실패:', imageDeleteError);
-
-      await loadMenus();
-      renderPhotoGallery();
-      renderGrid();
-      return;
-    }
-    if (btn.dataset.action === 'restaurant-photo-delete') {
-      const photo = (m.photos || []).find(item => item.id === btn.dataset.photoId);
-      if (!photo || !photo.owned) return;
-      if (!confirm('이 사진을 삭제할까요?')) return;
-
-      btn.disabled = true;
-      const { error } = await window.todayBapDb
-        .from('restaurant_photos')
-        .delete()
-        .eq('id', photo.id)
-        .eq('client_id', clientId);
-      if (error) {
-        console.error('식당 사진 삭제 실패:', error);
-        alert('사진을 삭제하지 못했어요. restaurant_photos RLS 정책을 확인해주세요.');
-        btn.disabled = false;
-        return;
-      }
-
-      const { error: imageDeleteError } = await window.todayBapDb.storage
-        .from(RESTAURANT_IMAGE_BUCKET)
-        .remove([photo.imagePath]);
-      if (imageDeleteError) console.warn('Storage 사진 삭제 실패:', imageDeleteError);
-
-      await loadMenus();
-      renderPhotoGallery();
-      renderGrid();
-      return;
-    }
-    if (btn.dataset.action === 'edit') {
-      openEditDialog(m);
-      return;
-    }
-    if (btn.dataset.action === 'comment-edit') {
-      const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
-      if (!review || !review.owned) return;
-
-      const editedText = prompt('리뷰 내용을 수정해주세요.', review.text);
-      if (editedText === null) return;
-      const content = editedText.trim();
-      if (!content) {
-        alert('리뷰 내용을 입력해주세요.');
-        return;
-      }
-      if (content.length > 500) {
-        alert('리뷰는 500자 이하로 입력해주세요.');
-        return;
-      }
-
-      btn.disabled = true;
-      const { error } = await window.todayBapDb
-        .from('reviews')
-        .update({ content })
-        .eq('id', review.id)
-        .eq('client_id', clientId);
-
-      if (error) {
-        console.error('리뷰 수정 실패:', error);
-        alert('리뷰 수정에 실패했어요. RLS 정책을 확인해주세요.');
-        btn.disabled = false;
-        return;
-      }
-
-      await loadMenus();
-      renderGrid();
-      return;
-    }
-    if (btn.dataset.action === 'comment-delete') {
-      const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
-      if (!review || !review.owned) return;
-      if (!confirm('이 리뷰를 삭제할까요? 삭제하면 되돌릴 수 없어요.')) return;
-
-      btn.disabled = true;
-      const { error } = await window.todayBapDb
-        .from('reviews')
-        .delete()
-        .eq('id', review.id)
-        .eq('client_id', clientId);
-
-      if (error) {
-        console.error('리뷰 삭제 실패:', error);
-        alert('리뷰 삭제에 실패했어요. RLS 정책을 확인해주세요.');
-        btn.disabled = false;
-        return;
-      }
-
-      if (review.imagePath) {
-        const { error: imageDeleteError } = await window.todayBapDb.storage
-          .from(RESTAURANT_IMAGE_BUCKET)
-          .remove([review.imagePath]);
-        if (imageDeleteError) console.warn('리뷰 사진 삭제 실패:', imageDeleteError);
-      }
-
-      await loadMenus();
-      renderPhotoGallery();
-      renderGrid();
-      return;
-    }
-    if (btn.dataset.action === 'vote') {
-      const vote = Number(btn.dataset.vote);
-      const voteButtons = btn.closest('.vote-control').querySelectorAll('.vote-btn');
-      voteButtons.forEach(button => { button.disabled = true; });
-      let error;
-
-      if (m.myVote === vote) {
-        ({ error } = await window.todayBapDb
-          .from('restaurant_votes')
-          .delete()
-          .eq('restaurant_id', m.id)
-          .eq('client_id', clientId));
-      } else {
-        ({ error } = await window.todayBapDb
-          .from('restaurant_votes')
-          .upsert({
-            restaurant_id: m.id,
-            client_id: clientId,
-            vote,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'restaurant_id,client_id' }));
-      }
-
-      if (error) {
-        console.error('추천 평가 저장 실패:', error);
-        alert('평가를 저장하지 못했어요. restaurant_votes 테이블과 RLS 정책을 확인해주세요.');
-        voteButtons.forEach(button => { button.disabled = false; });
-        return;
-      }
-
-      await loadMenus();
-      renderGrid();
-      return;
-    }
-    if (btn.dataset.action === 'comment-reply') {
-      const card = btn.closest('.card');
-      const textInput = card.querySelector('[data-role="comment-text"]');
-      textInput.dataset.replyTo = btn.dataset.reviewId;
-      textInput.placeholder = '답글 남기기 (취소: 빈칸 전송)';
-      textInput.focus();
-      return;
-    }
-    if (btn.dataset.action === 'comment-submit') {
-      const card = btn.closest('.card');
-      const authorInput = card.querySelector('[data-role="comment-author"]');
-      const textInput = card.querySelector('[data-role="comment-text"]');
-      const text = textInput.value.trim();
-      if (!text) { 
-        if (textInput.dataset.replyTo) {
-          delete textInput.dataset.replyTo;
-          textInput.placeholder = '댓글 남기기';
-        } else {
-          textInput.focus(); 
+      grid.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const m = menus.find(x => x.id === id);
+        if (!m) return;
+        if (btn.dataset.action === 'card-photo-previous' || btn.dataset.action === 'card-photo-next') {
+          const track = btn.closest('.card-photo-area').querySelector('[data-role="card-photo-track"]');
+          const direction = btn.dataset.action === 'card-photo-previous' ? -1 : 1;
+          track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
+          return;
         }
-        return; 
+        if (btn.dataset.action === 'restaurant-cover-photo-delete') {
+          if (!m.photoPath || !confirm('첫 번째 사진을 삭제할까요?')) return;
+
+          btn.disabled = true;
+          const { error } = await window.todayBapDb
+            .from('restaurants')
+            .update({ photo_url: null, updated_at: new Date().toISOString() })
+            .eq('id', m.id);
+          if (error) {
+            console.error('첫 사진 삭제 실패:', error);
+            alert('첫 사진을 삭제하지 못했어요. restaurants UPDATE 정책을 확인해주세요.');
+            btn.disabled = false;
+            return;
+          }
+
+          if (!/^(https?:|data:|blob:)/i.test(m.photoPath)) {
+            const { error: imageDeleteError } = await window.todayBapDb.storage
+              .from(RESTAURANT_IMAGE_BUCKET)
+              .remove([m.photoPath]);
+            if (imageDeleteError) console.warn('Storage 첫 사진 삭제 실패:', imageDeleteError);
+          }
+
+          await loadMenus();
+          renderPhotoGallery();
+          renderGrid();
+          return;
+        }
+        if (btn.dataset.action === 'review-photo-delete') {
+          const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
+          if (!review || !review.owned || !review.imagePath) return;
+          if (!confirm('이 사진을 삭제할까요?')) return;
+
+          btn.disabled = true;
+          const query = review.text?.trim()
+            ? window.todayBapDb.from('reviews').update({ image_path: null })
+            : window.todayBapDb.from('reviews').delete();
+          const { error } = await query.eq('id', review.id).eq('client_id', clientId);
+          if (error) {
+            console.error('등록 사진 삭제 실패:', error);
+            alert('사진을 삭제하지 못했어요. RLS 정책을 확인해주세요.');
+            btn.disabled = false;
+            return;
+          }
+
+          const { error: imageDeleteError } = await window.todayBapDb.storage
+            .from(RESTAURANT_IMAGE_BUCKET)
+            .remove([review.imagePath]);
+          if (imageDeleteError) console.warn('Storage 사진 삭제 실패:', imageDeleteError);
+
+          await loadMenus();
+          renderPhotoGallery();
+          renderGrid();
+          return;
+        }
+        if (btn.dataset.action === 'restaurant-photo-delete') {
+          const photo = (m.photos || []).find(item => item.id === btn.dataset.photoId);
+          if (!photo || !photo.owned) return;
+          if (!confirm('이 사진을 삭제할까요?')) return;
+
+          btn.disabled = true;
+          const { error } = await window.todayBapDb
+            .from('restaurant_photos')
+            .delete()
+            .eq('id', photo.id)
+            .eq('client_id', clientId);
+          if (error) {
+            console.error('식당 사진 삭제 실패:', error);
+            alert('사진을 삭제하지 못했어요. restaurant_photos RLS 정책을 확인해주세요.');
+            btn.disabled = false;
+            return;
+          }
+
+          const { error: imageDeleteError } = await window.todayBapDb.storage
+            .from(RESTAURANT_IMAGE_BUCKET)
+            .remove([photo.imagePath]);
+          if (imageDeleteError) console.warn('Storage 사진 삭제 실패:', imageDeleteError);
+
+          await loadMenus();
+          renderPhotoGallery();
+          renderGrid();
+          return;
+        }
+        if (btn.dataset.action === 'edit') {
+          openEditDialog(m);
+          return;
+        }
+        if (btn.dataset.action === 'comment-edit') {
+          const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
+          if (!review || !review.owned) return;
+
+          const editedText = prompt('리뷰 내용을 수정해주세요.', review.text);
+          if (editedText === null) return;
+          const content = editedText.trim();
+          if (!content) {
+            alert('리뷰 내용을 입력해주세요.');
+            return;
+          }
+          if (content.length > 500) {
+            alert('리뷰는 500자 이하로 입력해주세요.');
+            return;
+          }
+
+          btn.disabled = true;
+          const { error } = await window.todayBapDb
+            .from('reviews')
+            .update({ content })
+            .eq('id', review.id)
+            .eq('client_id', clientId);
+
+          if (error) {
+            console.error('리뷰 수정 실패:', error);
+            alert('리뷰 수정에 실패했어요. RLS 정책을 확인해주세요.');
+            btn.disabled = false;
+            return;
+          }
+
+          await loadMenus();
+          renderGrid();
+          return;
+        }
+        if (btn.dataset.action === 'comment-delete') {
+          const review = (m.comments || []).find(comment => comment.id === btn.dataset.reviewId);
+          if (!review || !review.owned) return;
+          if (!confirm('이 리뷰를 삭제할까요? 삭제하면 되돌릴 수 없어요.')) return;
+
+          btn.disabled = true;
+          const { error } = await window.todayBapDb
+            .from('reviews')
+            .delete()
+            .eq('id', review.id)
+            .eq('client_id', clientId);
+
+          if (error) {
+            console.error('리뷰 삭제 실패:', error);
+            alert('리뷰 삭제에 실패했어요. RLS 정책을 확인해주세요.');
+            btn.disabled = false;
+            return;
+          }
+
+          if (review.imagePath) {
+            const { error: imageDeleteError } = await window.todayBapDb.storage
+              .from(RESTAURANT_IMAGE_BUCKET)
+              .remove([review.imagePath]);
+            if (imageDeleteError) console.warn('리뷰 사진 삭제 실패:', imageDeleteError);
+          }
+
+          await loadMenus();
+          renderPhotoGallery();
+          renderGrid();
+          return;
+        }
+        if (btn.dataset.action === 'vote') {
+          const vote = Number(btn.dataset.vote);
+          const voteButtons = btn.closest('.vote-control').querySelectorAll('.vote-btn');
+          voteButtons.forEach(button => { button.disabled = true; });
+          let error;
+
+          if (m.myVote === vote) {
+            ({ error } = await window.todayBapDb
+              .from('restaurant_votes')
+              .delete()
+              .eq('restaurant_id', m.id)
+              .eq('client_id', clientId));
+          } else {
+            ({ error } = await window.todayBapDb
+              .from('restaurant_votes')
+              .upsert({
+                restaurant_id: m.id,
+                client_id: clientId,
+                vote,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'restaurant_id,client_id' }));
+          }
+
+          if (error) {
+            console.error('추천 평가 저장 실패:', error);
+            alert('평가를 저장하지 못했어요. restaurant_votes 테이블과 RLS 정책을 확인해주세요.');
+            voteButtons.forEach(button => { button.disabled = false; });
+            return;
+          }
+
+          await loadMenus();
+          renderGrid();
+          return;
+        }
+        if (btn.dataset.action === 'comment-reply') {
+          const card = btn.closest('.card');
+          const textInput = card.querySelector('[data-role="comment-text"]');
+          textInput.dataset.replyTo = btn.dataset.reviewId;
+          textInput.placeholder = '답글 남기기 (취소: 빈칸 전송)';
+          textInput.focus();
+          return;
+        }
+        if (btn.dataset.action === 'comment-submit') {
+          const card = btn.closest('.card');
+          const authorInput = card.querySelector('[data-role="comment-author"]');
+          const textInput = card.querySelector('[data-role="comment-text"]');
+          const text = textInput.value.trim();
+          if (!text) {
+            if (textInput.dataset.replyTo) {
+              delete textInput.dataset.replyTo;
+              textInput.placeholder = '댓글 남기기';
+            } else {
+              textInput.focus();
+            }
+            return;
+          }
+
+          btn.disabled = true;
+          const parentId = textInput.dataset.replyTo || null;
+          const { error } = await window.todayBapDb
+            .from('reviews')
+            .insert({
+              restaurant_id: m.id,
+              author_name: authorInput.value.trim() || '익명',
+              content: text,
+              image_path: null,
+              client_id: clientId,
+              created_at: new Date().toISOString(),
+              parent_id: parentId
+            });
+
+          if (error) {
+            console.error('리뷰 등록 실패:', error);
+            alert('댓글 등록에 실패했어요. RLS 정책을 확인해주세요.');
+            btn.disabled = false;
+            return;
+          }
+
+          if (textInput.dataset.replyTo) {
+            delete textInput.dataset.replyTo;
+          }
+          await loadMenus();
+          renderGrid();
+        }
+      });
+
+      grid.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.dataset.role === 'comment-text') {
+          const submitBtn = e.target.closest('.card').querySelector('[data-action="comment-submit"]');
+          submitBtn.click();
+        }
+      });
+
+      grid.addEventListener('scroll', (e) => {
+        if (e.target.dataset.role === 'card-photo-track') updateCardPhotoCount(e.target);
+      }, true);
+
+      previousPhotoBtn.addEventListener('click', () => {
+        photoGallery.scrollBy({ left: -Math.max(142, photoGallery.clientWidth * 0.8), behavior: 'smooth' });
+      });
+      nextPhotoBtn.addEventListener('click', () => {
+        photoGallery.scrollBy({ left: Math.max(142, photoGallery.clientWidth * 0.8), behavior: 'smooth' });
+      });
+      photoGallery.addEventListener('scroll', updatePhotoGalleryNavigation, { passive: true });
+      window.addEventListener('resize', updatePhotoGalleryNavigation);
+
+      grid.addEventListener('change', async (e) => {
+        const photoInput = e.target.closest('[data-action="gallery-photo-upload"]');
+        if (photoInput) {
+          const menu = menus.find(x => x.id === photoInput.dataset.id);
+          if (menu) await uploadRestaurantGalleryPhoto(photoInput, menu);
+          return;
+        }
+
+        const input = e.target.closest('[data-action="pool"]');
+        if (!input) return;
+        const m = menus.find(x => x.id === input.dataset.id);
+        if (!m) return;
+        m.excluded = !input.checked;
+        await saveMenus();
+        renderGrid();
+      });
+
+      restaurantAddressInput.addEventListener('input', () => {
+        const address = restaurantAddressInput.value.trim();
+        if (address !== lastGeocodedAddress) {
+          pendingCoordinates = null;
+          restaurantLocationStatus.textContent = address
+            ? '저장할 때 이 주소의 위치를 자동으로 찾아요.'
+            : '주소가 있으면 저장할 때 위치를 자동으로 찾아요.';
+        }
+      });
+
+      restaurantGeocodeBtn.addEventListener('click', async () => {
+        const address = restaurantAddressInput.value.trim();
+        if (!address) {
+          restaurantLocationStatus.textContent = '먼저 주소를 입력해주세요.';
+          restaurantAddressInput.focus();
+          return;
+        }
+        restaurantGeocodeBtn.disabled = true;
+        restaurantLocationStatus.textContent = '주소의 지도 위치를 찾는 중…';
+        try {
+          pendingCoordinates = await geocodeRestaurantAddress(address);
+          lastGeocodedAddress = address;
+          restaurantLocationStatus.textContent = '지도에 표시할 위치를 찾았어요.';
+        } catch (error) {
+          console.warn('주소 위치 확인 실패:', error);
+          pendingCoordinates = null;
+          lastGeocodedAddress = '';
+          restaurantLocationStatus.textContent = error.message || '주소 위치를 찾지 못했어요.';
+        } finally {
+          restaurantGeocodeBtn.disabled = false;
+        }
+      });
+
+      document.getElementById('openRestaurantDialog').addEventListener('click', () => {
+        resetRestaurantDialogToAddMode();
+        restaurantForm.reset();
+        restaurantFormStatus.textContent = '';
+        restaurantDialog.showModal();
+        document.getElementById('restaurantName').focus();
+      });
+
+      document.getElementById('closeRestaurantDialog').addEventListener('click', () => restaurantDialog.close());
+      document.getElementById('cancelRestaurantDialog').addEventListener('click', () => restaurantDialog.close());
+      restaurantDialog.addEventListener('click', (event) => {
+        if (event.target === restaurantDialog) restaurantDialog.close();
+      });
+      restaurantDialog.addEventListener('close', () => {
+        resetRestaurantDialogToAddMode();
+      });
+
+      weekStrip.addEventListener('click', (event) => {
+        const dayButton = event.target.closest('.week-day');
+        if (!dayButton) return;
+        openMealRecordDialog(dayButton.dataset.date);
+      });
+
+      document.getElementById('closeMealRecordDialog').addEventListener('click', () => mealRecordDialog.close());
+      document.getElementById('cancelMealRecordDialog').addEventListener('click', () => mealRecordDialog.close());
+      mealRecordDialog.addEventListener('click', (event) => {
+        if (event.target === mealRecordDialog) mealRecordDialog.close();
+      });
+      mealRecordDialog.addEventListener('close', () => {
+        selectedHistoryDate = null;
+        mealRecordForm.reset();
+        mealRecordStatus.textContent = '';
+      });
+
+      mealRecordForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!selectedHistoryDate || !mealRecordForm.reportValidity()) return;
+
+        const menu = menus.find(item => item.id === mealRecordRestaurant.value);
+        if (!menu) {
+          mealRecordStatus.textContent = '선택한 식당 정보를 찾지 못했어요.';
+          return;
+        }
+
+        mealRecordSubmitBtn.disabled = true;
+        mealRecordStatus.textContent = '점심 기록을 저장하는 중…';
+        try {
+          await saveHistory(menu, selectedHistoryDate);
+          await loadHistory();
+          renderWeekStrip();
+          renderCalendar();
+          mealRecordDialog.close();
+        } catch (error) {
+          console.error('요일별 점심 기록 저장 실패:', error);
+          mealRecordStatus.textContent = '저장하지 못했어요. lunch_history RLS 정책을 확인해주세요.';
+        } finally {
+          mealRecordSubmitBtn.disabled = false;
+        }
+      });
+
+      restaurantForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!restaurantForm.reportValidity()) return;
+
+        if (editingId) {
+          await submitRestaurantEdit(editingId);
+        } else {
+          await submitNewRestaurant();
+        }
+      });
+
+      async function submitNewRestaurant() {
+        const formData = new FormData(restaurantForm);
+        const photoFile = formData.get('photo');
+        const address = String(formData.get('address') || '').trim();
+        let compressedPhoto = null;
+        let locationWarning = '';
+
+        restaurantSubmitBtn.disabled = true;
+        restaurantFormStatus.textContent = photoFile && photoFile.size ? '사진을 압축하는 중…' : '식당을 등록하는 중…';
+
+        try {
+          if (photoFile && photoFile.size) {
+            compressedPhoto = await compressRestaurantPhoto(photoFile);
+          }
+
+          let coordinates = null;
+          if (coordinateColumnsAvailable) {
+            if (address) restaurantFormStatus.textContent = '주소의 지도 위치를 확인하는 중…';
+            const coordinateResult = await coordinatesForSave(address);
+            coordinates = coordinateResult.coordinates;
+            locationWarning = coordinateResult.warning;
+          } else if (address) {
+            locationWarning = '지도 좌표 컬럼이 없어 주소만 저장했어요.';
+          }
+
+          const timestamp = new Date().toISOString();
+          const restaurantValues = {
+            name: String(formData.get('name') || '').trim(),
+            category: String(formData.get('category') || '').trim(),
+            address: address || null,
+            description: String(formData.get('description') || '').trim() || null,
+            photo_url: null,
+            created_by: String(formData.get('created_by') || '').trim() || '익명',
+            created_at: timestamp,
+            updated_at: timestamp
+          };
+          if (coordinateColumnsAvailable) {
+            restaurantValues.latitude = coordinates?.latitude ?? null;
+            restaurantValues.longitude = coordinates?.longitude ?? null;
+          }
+
+          const { data: restaurant, error: insertError } = await window.todayBapDb
+            .from('restaurants')
+            .insert(restaurantValues)
+            .select('id')
+            .single();
+
+          if (insertError) throw insertError;
+
+          let photoWarning = '';
+          if (compressedPhoto) {
+            restaurantFormStatus.textContent = '대표 사진을 업로드하는 중…';
+            const imagePath = `restaurants/${restaurant.id}/${crypto.randomUUID()}.webp`;
+            const { error: uploadError } = await window.todayBapDb.storage
+              .from(RESTAURANT_IMAGE_BUCKET)
+              .upload(imagePath, compressedPhoto, {
+                contentType: 'image/webp',
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) {
+              console.error('신규 식당 대표 사진 업로드 실패:', uploadError);
+              photoWarning = '식당은 등록됐지만 대표 사진은 저장하지 못했어요.';
+            } else {
+              const { error: photoUpdateError } = await window.todayBapDb
+                .from('restaurants')
+                .update({ photo_url: imagePath })
+                .eq('id', restaurant.id);
+              if (photoUpdateError) {
+                console.error('신규 식당 대표 사진 경로 저장 실패:', photoUpdateError);
+                photoWarning = '식당은 등록됐지만 대표 사진 연결은 실패했어요.';
+              }
+            }
+          }
+
+          await loadMenus();
+          renderCategoryChips();
+          renderPhotoGallery();
+          renderGrid();
+          renderStats();
+          restaurantDialog.close();
+          restaurantForm.reset();
+          alert([photoWarning, locationWarning].filter(Boolean).join('\n') || '식당을 등록했어요.');
+        } catch (error) {
+          console.error('식당 등록 실패:', error);
+          restaurantFormStatus.textContent = error.message || '식당 등록에 실패했어요.';
+        } finally {
+          restaurantSubmitBtn.disabled = false;
+        }
       }
 
-      btn.disabled = true;
-      const parentId = textInput.dataset.replyTo || null;
-      const { error } = await window.todayBapDb
-        .from('reviews')
-        .insert({
-          restaurant_id: m.id,
-          author_name: authorInput.value.trim() || '익명',
-          content: text,
-          image_path: null,
-          client_id: clientId,
-          created_at: new Date().toISOString(),
-          parent_id: parentId
+      async function submitRestaurantEdit(id) {
+        const formData = new FormData(restaurantForm);
+        const address = String(formData.get('address') || '').trim();
+
+        restaurantSubmitBtn.disabled = true;
+        restaurantFormStatus.textContent = '수정 내용을 저장하는 중…';
+
+        try {
+          let coordinates = null;
+          let locationWarning = '';
+          if (coordinateColumnsAvailable) {
+            if (address && (!pendingCoordinates || lastGeocodedAddress !== address)) {
+              restaurantFormStatus.textContent = '주소의 지도 위치를 확인하는 중…';
+            }
+            const coordinateResult = await coordinatesForSave(address);
+            coordinates = coordinateResult.coordinates;
+            locationWarning = coordinateResult.warning;
+          } else if (address) {
+            locationWarning = '지도 좌표 컬럼이 없어 주소만 저장했어요.';
+          }
+
+          const restaurantValues = {
+            name: String(formData.get('name') || '').trim(),
+            category: String(formData.get('category') || '').trim(),
+            address: address || null,
+            description: String(formData.get('description') || '').trim() || null,
+            updated_at: new Date().toISOString()
+          };
+          if (coordinateColumnsAvailable) {
+            restaurantValues.latitude = coordinates?.latitude ?? null;
+            restaurantValues.longitude = coordinates?.longitude ?? null;
+          }
+
+          const { error: updateError } = await window.todayBapDb
+            .from('restaurants')
+            .update(restaurantValues)
+            .eq('id', id);
+
+          if (updateError) throw updateError;
+
+          await loadMenus();
+          renderCategoryChips();
+          renderPhotoGallery();
+          renderGrid();
+          renderStats();
+          restaurantDialog.close();
+          restaurantForm.reset();
+          alert(locationWarning || '식당 정보를 수정했어요.');
+        } catch (error) {
+          console.error('식당 수정 실패:', error);
+          restaurantFormStatus.textContent = error.message || '식당 수정에 실패했어요.';
+        } finally {
+          restaurantSubmitBtn.disabled = false;
+        }
+      }
+
+      searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim();
+        renderGrid();
+        renderRestaurantMap();
+      });
+
+      sortSelect.addEventListener('change', (e) => {
+        sortMode = e.target.value;
+        renderGrid();
+        renderRestaurantMap();
+      });
+
+      document.getElementById('weekHistoryTab').addEventListener('click', () => selectHistoryTab('week'));
+      document.getElementById('calendarHistoryTab').addEventListener('click', () => selectHistoryTab('calendar'));
+      document.getElementById('previousMonthBtn').addEventListener('click', () => {
+        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
+        renderCalendar();
+      });
+      document.getElementById('nextMonthBtn').addEventListener('click', () => {
+        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+        renderCalendar();
+      });
+
+      let rolling = false;
+      pickBtn.addEventListener('click', async () => {
+        if (rolling) return;
+        let pool = menus.filter(m => !m.excluded);
+        if (excludeTodayToggle.checked) {
+          const thisWeekNames = new Set(
+            history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name)
+          );
+          const remaining = pool.filter(m => !thisWeekNames.has(m.name));
+          if (remaining.length > 0) pool = remaining;
+        }
+        if (pool.length === 0) {
+          pickerEmoji.textContent = '';
+          pickerText.textContent = '후보가 없어요';
+          pickerSub.textContent = '필터를 해제해보세요';
+          return;
+        }
+
+        rolling = true;
+        pendingChoice = null;
+        confirmBtn.style.display = 'none';
+        pickerText.classList.remove('landed');
+        pickerText.parentElement.classList.remove('landed');
+        document.getElementById('pickerDisplay').classList.remove('landed');
+        document.getElementById('pickerDisplay').classList.add('rolling');
+        pickerSub.textContent = '';
+
+        const rounds = 16;
+        let i = 0;
+        const tick = () => {
+          const rand = pool[Math.floor(Math.random() * pool.length)];
+          pickerEmoji.textContent = CATEGORY_EMOJI[rand.category] || '';
+          pickerText.textContent = rand.name;
+          i++;
+          if (i < rounds) {
+            const delay = 60 + i * 14;
+            setTimeout(tick, delay);
+          } else {
+            finish();
+          }
+        };
+        tick();
+
+        function finish() {
+          const chosen = pool[Math.floor(Math.random() * pool.length)];
+          pickerEmoji.textContent = CATEGORY_EMOJI[chosen.category] || '';
+          pickerText.textContent = chosen.name;
+          document.getElementById('pickerDisplay').classList.remove('rolling');
+          document.getElementById('pickerDisplay').classList.add('landed');
+          pickerSub.textContent = `${chosen.category} · 확정 버튼을 눌러야 기록돼요`;
+          pendingChoice = chosen;
+          confirmBtn.style.display = 'block';
+          rolling = false;
+        }
+      });
+
+      confirmBtn.addEventListener('click', async () => {
+        if (!pendingChoice) return;
+        const choice = pendingChoice;
+        confirmBtn.disabled = true;
+        try {
+          await saveHistory(choice);
+          await loadHistory();
+          renderWeekStrip();
+          renderCalendar();
+          pickerSub.textContent = `${choice.category} · 오늘의 선택으로 등록했어요`;
+          confirmBtn.style.display = 'none';
+          pendingChoice = null;
+        } catch (error) {
+          alert('오늘의 점심 기록을 저장하지 못했어요. lunch_history RLS 정책을 확인해주세요.');
+        } finally {
+          confirmBtn.disabled = false;
+        }
+      });
+
+      function updateBodyScrollLock() {
+        if (document.querySelector('dialog[open]')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      }
+
+      worldcupSetupDialog.addEventListener('close', updateBodyScrollLock);
+      worldcupPlayDialog.addEventListener('close', () => {
+        updateBodyScrollLock();
+        worldcupWinnerArea.classList.remove('show');
+        worldcupBattleArea.style.display = 'none';
+      });
+
+      worldcupSetupDialog.addEventListener('click', (event) => {
+        if (event.target === worldcupSetupDialog) worldcupSetupDialog.close();
+      });
+      worldcupPlayDialog.addEventListener('click', (event) => {
+        if (event.target === worldcupPlayDialog) worldcupPlayDialog.close();
+      });
+
+      // --- Worldcup Logic ---
+      worldcupShortcutBtn.addEventListener('click', () => {
+        worldcupSizeSelect.value = '8';
+        worldcupSetupDialog.showModal();
+        updateBodyScrollLock();
+      });
+
+      worldcupSizeSelect.addEventListener('change', (e) => {
+        const selectedSize = parseInt(e.target.value);
+
+        let thisWeekNames = new Set();
+        if (excludeTodayToggle.checked) {
+          thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+        }
+
+        const validMenus = Array.from(menus.values()).filter(m => {
+          // 뽑기와 동일한 제외 조건
+          if (m.excluded) return false;
+          if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
+          return true;
         });
 
-      if (error) {
-        console.error('리뷰 등록 실패:', error);
-        alert('댓글 등록에 실패했어요. RLS 정책을 확인해주세요.');
-        btn.disabled = false;
-        return;
-      }
+        if (selectedSize > validMenus.length) {
+          alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${selectedSize}강을 진행할 수 없습니다!`);
+          let fallback = 8;
+          for (let s of [8, 16, 32, 64, 128, 256]) {
+            if (s <= validMenus.length) fallback = s;
+          }
+          if (validMenus.length < 8) {
+            alert("식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!");
+          }
+          e.target.value = fallback.toString();
+        }
+      });
 
-      if (textInput.dataset.replyTo) {
-        delete textInput.dataset.replyTo;
-      }
-      await loadMenus();
-      renderGrid();
-    }
-  });
+      cancelWorldcupSetup.addEventListener('click', () => worldcupSetupDialog.close());
+      closeWorldcupPlay.addEventListener('click', () => worldcupPlayDialog.close());
 
-  grid.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target.dataset.role === 'comment-text') {
-      const submitBtn = e.target.closest('.card').querySelector('[data-action="comment-submit"]');
-      submitBtn.click();
-    }
-  });
+      startWorldcupBtn.addEventListener('click', () => {
+        let size = parseInt(worldcupSizeSelect.value);
 
-  grid.addEventListener('scroll', (e) => {
-    if (e.target.dataset.role === 'card-photo-track') updateCardPhotoCount(e.target);
-  }, true);
+        let thisWeekNames = new Set();
+        if (excludeTodayToggle.checked) {
+          thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+        }
 
-  previousPhotoBtn.addEventListener('click', () => {
-    photoGallery.scrollBy({ left: -Math.max(142, photoGallery.clientWidth * 0.8), behavior: 'smooth' });
-  });
-  nextPhotoBtn.addEventListener('click', () => {
-    photoGallery.scrollBy({ left: Math.max(142, photoGallery.clientWidth * 0.8), behavior: 'smooth' });
-  });
-  photoGallery.addEventListener('scroll', updatePhotoGalleryNavigation, { passive: true });
-  window.addEventListener('resize', updatePhotoGalleryNavigation);
+        let validMenus = Array.from(menus.values()).filter(m => {
+          if (m.excluded) return false;
+          if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
+          return true;
+        });
 
-  grid.addEventListener('change', async (e) => {
-    const photoInput = e.target.closest('[data-action="gallery-photo-upload"]');
-    if (photoInput) {
-      const menu = menus.find(x => x.id === photoInput.dataset.id);
-      if (menu) await uploadRestaurantGalleryPhoto(photoInput, menu);
-      return;
-    }
+        if (size > validMenus.length) {
+          alert("식당 수가 부족합니다.");
+          return;
+        }
 
-    const input = e.target.closest('[data-action="pool"]');
-    if (!input) return;
-    const m = menus.find(x => x.id === input.dataset.id);
-    if (!m) return;
-    m.excluded = !input.checked;
-    await saveMenus();
-    renderGrid();
-  });
+        validMenus.sort(() => Math.random() - 0.5);
+        worldcupMenus = validMenus.slice(0, size);
 
-  restaurantAddressInput.addEventListener('input', () => {
-    const address = restaurantAddressInput.value.trim();
-    if (address !== lastGeocodedAddress) {
-      pendingCoordinates = null;
-      restaurantLocationStatus.textContent = address
-        ? '저장할 때 이 주소의 위치를 자동으로 찾아요.'
-        : '주소가 있으면 저장할 때 위치를 자동으로 찾아요.';
-    }
-  });
+        currentRoundMenus = [...worldcupMenus];
+        nextRoundMenus = [];
+        currentMatchIndex = 0;
 
-  restaurantGeocodeBtn.addEventListener('click', async () => {
-    const address = restaurantAddressInput.value.trim();
-    if (!address) {
-      restaurantLocationStatus.textContent = '먼저 주소를 입력해주세요.';
-      restaurantAddressInput.focus();
-      return;
-    }
-    restaurantGeocodeBtn.disabled = true;
-    restaurantLocationStatus.textContent = '주소의 지도 위치를 찾는 중…';
-    try {
-      pendingCoordinates = await geocodeRestaurantAddress(address);
-      lastGeocodedAddress = address;
-      restaurantLocationStatus.textContent = '지도에 표시할 위치를 찾았어요.';
-    } catch (error) {
-      console.warn('주소 위치 확인 실패:', error);
-      pendingCoordinates = null;
-      lastGeocodedAddress = '';
-      restaurantLocationStatus.textContent = error.message || '주소 위치를 찾지 못했어요.';
-    } finally {
-      restaurantGeocodeBtn.disabled = false;
-    }
-  });
+        worldcupSetupDialog.close();
 
-  document.getElementById('openRestaurantDialog').addEventListener('click', () => {
-    resetRestaurantDialogToAddMode();
-    restaurantForm.reset();
-    restaurantFormStatus.textContent = '';
-    restaurantDialog.showModal();
-    document.getElementById('restaurantName').focus();
-  });
+        worldcupBattleArea.style.display = 'flex';
+        worldcupWinnerArea.classList.remove('show');
 
-  document.getElementById('closeRestaurantDialog').addEventListener('click', () => restaurantDialog.close());
-  document.getElementById('cancelRestaurantDialog').addEventListener('click', () => restaurantDialog.close());
-  restaurantDialog.addEventListener('click', (event) => {
-    if (event.target === restaurantDialog) restaurantDialog.close();
-  });
-  restaurantDialog.addEventListener('close', () => {
-    resetRestaurantDialogToAddMode();
-  });
+        renderWorldcupMatch();
+        worldcupPlayDialog.showModal();
+        updateBodyScrollLock();
+      });
 
-  weekStrip.addEventListener('click', (event) => {
-    const dayButton = event.target.closest('.week-day');
-    if (!dayButton) return;
-    openMealRecordDialog(dayButton.dataset.date);
-  });
+      function renderWorldcupMatch() {
+        if (currentMatchIndex >= currentRoundMenus.length) {
+          currentRoundMenus = [...nextRoundMenus];
+          nextRoundMenus = [];
+          currentMatchIndex = 0;
 
-  document.getElementById('closeMealRecordDialog').addEventListener('click', () => mealRecordDialog.close());
-  document.getElementById('cancelMealRecordDialog').addEventListener('click', () => mealRecordDialog.close());
-  mealRecordDialog.addEventListener('click', (event) => {
-    if (event.target === mealRecordDialog) mealRecordDialog.close();
-  });
-  mealRecordDialog.addEventListener('close', () => {
-    selectedHistoryDate = null;
-    mealRecordForm.reset();
-    mealRecordStatus.textContent = '';
-  });
-
-  mealRecordForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!selectedHistoryDate || !mealRecordForm.reportValidity()) return;
-
-    const menu = menus.find(item => item.id === mealRecordRestaurant.value);
-    if (!menu) {
-      mealRecordStatus.textContent = '선택한 식당 정보를 찾지 못했어요.';
-      return;
-    }
-
-    mealRecordSubmitBtn.disabled = true;
-    mealRecordStatus.textContent = '점심 기록을 저장하는 중…';
-    try {
-      await saveHistory(menu, selectedHistoryDate);
-      await loadHistory();
-      renderWeekStrip();
-      renderCalendar();
-      mealRecordDialog.close();
-    } catch (error) {
-      console.error('요일별 점심 기록 저장 실패:', error);
-      mealRecordStatus.textContent = '저장하지 못했어요. lunch_history RLS 정책을 확인해주세요.';
-    } finally {
-      mealRecordSubmitBtn.disabled = false;
-    }
-  });
-
-  restaurantForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!restaurantForm.reportValidity()) return;
-
-    if (editingId) {
-      await submitRestaurantEdit(editingId);
-    } else {
-      await submitNewRestaurant();
-    }
-  });
-
-  async function submitNewRestaurant() {
-    const formData = new FormData(restaurantForm);
-    const photoFile = formData.get('photo');
-    const address = String(formData.get('address') || '').trim();
-    let compressedPhoto = null;
-    let locationWarning = '';
-
-    restaurantSubmitBtn.disabled = true;
-    restaurantFormStatus.textContent = photoFile && photoFile.size ? '사진을 압축하는 중…' : '식당을 등록하는 중…';
-
-    try {
-      if (photoFile && photoFile.size) {
-        compressedPhoto = await compressRestaurantPhoto(photoFile);
-      }
-
-      let coordinates = null;
-      if (coordinateColumnsAvailable) {
-        if (address) restaurantFormStatus.textContent = '주소의 지도 위치를 확인하는 중…';
-        const coordinateResult = await coordinatesForSave(address);
-        coordinates = coordinateResult.coordinates;
-        locationWarning = coordinateResult.warning;
-      } else if (address) {
-        locationWarning = '지도 좌표 컬럼이 없어 주소만 저장했어요.';
-      }
-
-      const timestamp = new Date().toISOString();
-      const restaurantValues = {
-        name: String(formData.get('name') || '').trim(),
-        category: String(formData.get('category') || '').trim(),
-        address: address || null,
-        description: String(formData.get('description') || '').trim() || null,
-        photo_url: null,
-        created_by: String(formData.get('created_by') || '').trim() || '익명',
-        created_at: timestamp,
-        updated_at: timestamp
-      };
-      if (coordinateColumnsAvailable) {
-        restaurantValues.latitude = coordinates?.latitude ?? null;
-        restaurantValues.longitude = coordinates?.longitude ?? null;
-      }
-
-      const { data: restaurant, error: insertError } = await window.todayBapDb
-        .from('restaurants')
-        .insert(restaurantValues)
-        .select('id')
-        .single();
-
-      if (insertError) throw insertError;
-
-      let photoWarning = '';
-      if (compressedPhoto) {
-        restaurantFormStatus.textContent = '대표 사진을 업로드하는 중…';
-        const imagePath = `restaurants/${restaurant.id}/${crypto.randomUUID()}.webp`;
-        const { error: uploadError } = await window.todayBapDb.storage
-          .from(RESTAURANT_IMAGE_BUCKET)
-          .upload(imagePath, compressedPhoto, {
-            contentType: 'image/webp',
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) {
-          console.error('신규 식당 대표 사진 업로드 실패:', uploadError);
-          photoWarning = '식당은 등록됐지만 대표 사진은 저장하지 못했어요.';
-        } else {
-          const { error: photoUpdateError } = await window.todayBapDb
-            .from('restaurants')
-            .update({ photo_url: imagePath })
-            .eq('id', restaurant.id);
-          if (photoUpdateError) {
-            console.error('신규 식당 대표 사진 경로 저장 실패:', photoUpdateError);
-            photoWarning = '식당은 등록됐지만 대표 사진 연결은 실패했어요.';
+          if (currentRoundMenus.length === 1) {
+            renderWorldcupWinner(currentRoundMenus[0]);
+            return;
           }
         }
+
+        const menuA = currentRoundMenus[currentMatchIndex];
+        const menuB = currentRoundMenus[currentMatchIndex + 1];
+
+        const roundTotal = currentRoundMenus.length;
+        const roundName = roundTotal === 2 ? '결승' : `${roundTotal}강`;
+        const matchNumber = Math.floor(currentMatchIndex / 2) + 1;
+        worldcupRoundText.textContent = `${roundName} (${matchNumber}/${roundTotal / 2})`;
+
+        worldcupCardA.innerHTML = renderWorldcupCardInner(menuA);
+        worldcupCardB.innerHTML = renderWorldcupCardInner(menuB);
+
+        worldcupCardA.onclick = () => handleWorldcupChoice(menuA);
+        worldcupCardB.onclick = () => handleWorldcupChoice(menuB);
       }
 
-      await loadMenus();
-      renderCategoryChips();
-      renderPhotoGallery();
-      renderGrid();
-      renderStats();
-      restaurantDialog.close();
-      restaurantForm.reset();
-      alert([photoWarning, locationWarning].filter(Boolean).join('\n') || '식당을 등록했어요.');
-    } catch (error) {
-      console.error('식당 등록 실패:', error);
-      restaurantFormStatus.textContent = error.message || '식당 등록에 실패했어요.';
-    } finally {
-      restaurantSubmitBtn.disabled = false;
-    }
-  }
-
-  async function submitRestaurantEdit(id) {
-    const formData = new FormData(restaurantForm);
-    const address = String(formData.get('address') || '').trim();
-
-    restaurantSubmitBtn.disabled = true;
-    restaurantFormStatus.textContent = '수정 내용을 저장하는 중…';
-
-    try {
-      let coordinates = null;
-      let locationWarning = '';
-      if (coordinateColumnsAvailable) {
-        if (address && (!pendingCoordinates || lastGeocodedAddress !== address)) {
-          restaurantFormStatus.textContent = '주소의 지도 위치를 확인하는 중…';
+      function renderWorldcupCardInner(menu, isWinner = false) {
+        let photoUrl = '';
+        if (menu.photo) {
+          photoUrl = menu.photo;
+        } else if (menu.photos && menu.photos.length > 0) {
+          photoUrl = menu.photos[0].url;
+        } else if (menu.comments && menu.comments.find(c => c.imagePath)) {
+          photoUrl = restaurantPhotoUrl(menu.comments.find(c => c.imagePath).imagePath);
         }
-        const coordinateResult = await coordinatesForSave(address);
-        coordinates = coordinateResult.coordinates;
-        locationWarning = coordinateResult.warning;
-      } else if (address) {
-        locationWarning = '지도 좌표 컬럼이 없어 주소만 저장했어요.';
-      }
 
-      const restaurantValues = {
-        name: String(formData.get('name') || '').trim(),
-        category: String(formData.get('category') || '').trim(),
-        address: address || null,
-        description: String(formData.get('description') || '').trim() || null,
-        updated_at: new Date().toISOString()
-      };
-      if (coordinateColumnsAvailable) {
-        restaurantValues.latitude = coordinates?.latitude ?? null;
-        restaurantValues.longitude = coordinates?.longitude ?? null;
-      }
+        const photoStyle = isWinner
+          ? 'width: min(100%, 340px); height: 340px; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 16px; margin: 0 auto 16px; display: block;'
+          : 'width: 100%; height: 240px; object-fit: cover; border-radius: 12px; margin-bottom: 12px;';
 
-      const { error: updateError } = await window.todayBapDb
-        .from('restaurants')
-        .update(restaurantValues)
-        .eq('id', id);
+        const photoHtml = photoUrl
+          ? `<img src="${photoUrl}" alt="" class="worldcup-card-img" style="${photoStyle}">`
+          : `<div style="font-size: 80px; margin-bottom: 12px;">${CATEGORY_EMOJI[menu.category] || '🍽️'}</div>`;
 
-      if (updateError) throw updateError;
-
-      await loadMenus();
-      renderCategoryChips();
-      renderPhotoGallery();
-      renderGrid();
-      renderStats();
-      restaurantDialog.close();
-      restaurantForm.reset();
-      alert(locationWarning || '식당 정보를 수정했어요.');
-    } catch (error) {
-      console.error('식당 수정 실패:', error);
-      restaurantFormStatus.textContent = error.message || '식당 수정에 실패했어요.';
-    } finally {
-      restaurantSubmitBtn.disabled = false;
-    }
-  }
-
-  searchInput.addEventListener('input', (e) => {
-    searchTerm = e.target.value.trim();
-    renderGrid();
-    renderRestaurantMap();
-  });
-
-  sortSelect.addEventListener('change', (e) => {
-    sortMode = e.target.value;
-    renderGrid();
-    renderRestaurantMap();
-  });
-
-  document.getElementById('weekHistoryTab').addEventListener('click', () => selectHistoryTab('week'));
-  document.getElementById('calendarHistoryTab').addEventListener('click', () => selectHistoryTab('calendar'));
-  document.getElementById('previousMonthBtn').addEventListener('click', () => {
-    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
-    renderCalendar();
-  });
-  document.getElementById('nextMonthBtn').addEventListener('click', () => {
-    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
-    renderCalendar();
-  });
-
-  let rolling = false;
-  pickBtn.addEventListener('click', async () => {
-    if (rolling) return;
-    let pool = menus.filter(m => !m.excluded);
-    if (excludeTodayToggle.checked) {
-      const thisWeekNames = new Set(
-        history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name)
-      );
-      const remaining = pool.filter(m => !thisWeekNames.has(m.name));
-      if (remaining.length > 0) pool = remaining;
-    }
-    if (pool.length === 0) {
-      pickerEmoji.textContent = '';
-      pickerText.textContent = '후보가 없어요';
-      pickerSub.textContent = '필터를 해제해보세요';
-      return;
-    }
-
-    rolling = true;
-    pendingChoice = null;
-    confirmBtn.style.display = 'none';
-    pickerText.classList.remove('landed');
-    pickerText.parentElement.classList.remove('landed');
-    document.getElementById('pickerDisplay').classList.remove('landed');
-    document.getElementById('pickerDisplay').classList.add('rolling');
-    pickerSub.textContent = '';
-
-    const rounds = 16;
-    let i = 0;
-    const tick = () => {
-      const rand = pool[Math.floor(Math.random() * pool.length)];
-      pickerEmoji.textContent = CATEGORY_EMOJI[rand.category] || '';
-      pickerText.textContent = rand.name;
-      i++;
-      if (i < rounds) {
-        const delay = 60 + i * 14;
-        setTimeout(tick, delay);
-      } else {
-        finish();
-      }
-    };
-    tick();
-
-    function finish() {
-      const chosen = pool[Math.floor(Math.random() * pool.length)];
-      pickerEmoji.textContent = CATEGORY_EMOJI[chosen.category] || '';
-      pickerText.textContent = chosen.name;
-      document.getElementById('pickerDisplay').classList.remove('rolling');
-      document.getElementById('pickerDisplay').classList.add('landed');
-      pickerSub.textContent = `${chosen.category} · 확정 버튼을 눌러야 기록돼요`;
-      pendingChoice = chosen;
-      confirmBtn.style.display = 'block';
-      rolling = false;
-    }
-  });
-
-  confirmBtn.addEventListener('click', async () => {
-    if (!pendingChoice) return;
-    const choice = pendingChoice;
-    confirmBtn.disabled = true;
-    try {
-      await saveHistory(choice);
-      await loadHistory();
-      renderWeekStrip();
-      renderCalendar();
-      pickerSub.textContent = `${choice.category} · 오늘의 선택으로 등록했어요`;
-      confirmBtn.style.display = 'none';
-      pendingChoice = null;
-    } catch (error) {
-      alert('오늘의 점심 기록을 저장하지 못했어요. lunch_history RLS 정책을 확인해주세요.');
-    } finally {
-      confirmBtn.disabled = false;
-    }
-  });
-
-  // --- Worldcup Logic ---
-  worldcupShortcutBtn.addEventListener('click', () => {
-    worldcupSizeSelect.value = '8';
-    worldcupSetupDialog.showModal();
-  });
-
-  worldcupSizeSelect.addEventListener('change', (e) => {
-    const selectedSize = parseInt(e.target.value);
-    
-    let thisWeekNames = new Set();
-    if (excludeTodayToggle.checked) {
-      thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
-    }
-    
-    const validMenus = Array.from(menus.values()).filter(m => {
-      // 뽑기와 동일한 제외 조건
-      if (m.excluded) return false;
-      if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
-      return true;
-    });
-    
-    if (selectedSize > validMenus.length) {
-      alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${selectedSize}강을 진행할 수 없습니다!`);
-      let fallback = 8;
-      for (let s of [8, 16, 32, 64, 128, 256]) {
-        if (s <= validMenus.length) fallback = s;
-      }
-      if (validMenus.length < 8) {
-        alert("식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!");
-      }
-      e.target.value = fallback.toString();
-    }
-  });
-
-  cancelWorldcupSetup.addEventListener('click', () => worldcupSetupDialog.close());
-  closeWorldcupPlay.addEventListener('click', () => worldcupPlayDialog.close());
-
-  startWorldcupBtn.addEventListener('click', () => {
-    let size = parseInt(worldcupSizeSelect.value);
-    
-    let thisWeekNames = new Set();
-    if (excludeTodayToggle.checked) {
-      thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
-    }
-
-    let validMenus = Array.from(menus.values()).filter(m => {
-      if (m.excluded) return false;
-      if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
-      return true;
-    });
-    
-    if (size > validMenus.length) {
-      alert("식당 수가 부족합니다.");
-      return;
-    }
-    
-    validMenus.sort(() => Math.random() - 0.5);
-    worldcupMenus = validMenus.slice(0, size);
-    
-    currentRoundMenus = [...worldcupMenus];
-    nextRoundMenus = [];
-    currentMatchIndex = 0;
-    
-    worldcupSetupDialog.close();
-    
-    worldcupBattleArea.style.display = 'flex';
-    worldcupWinnerArea.classList.remove('show');
-    
-    renderWorldcupMatch();
-    worldcupPlayDialog.showModal();
-  });
-
-  function renderWorldcupMatch() {
-    if (currentMatchIndex >= currentRoundMenus.length) {
-      currentRoundMenus = [...nextRoundMenus];
-      nextRoundMenus = [];
-      currentMatchIndex = 0;
-      
-      if (currentRoundMenus.length === 1) {
-        renderWorldcupWinner(currentRoundMenus[0]);
-        return;
-      }
-    }
-    
-    const menuA = currentRoundMenus[currentMatchIndex];
-    const menuB = currentRoundMenus[currentMatchIndex + 1];
-    
-    const roundTotal = currentRoundMenus.length;
-    const roundName = roundTotal === 2 ? '결승' : `${roundTotal}강`;
-    const matchNumber = Math.floor(currentMatchIndex / 2) + 1;
-    worldcupRoundText.textContent = `${roundName} (${matchNumber}/${roundTotal/2})`;
-    
-    worldcupCardA.innerHTML = renderWorldcupCardInner(menuA);
-    worldcupCardB.innerHTML = renderWorldcupCardInner(menuB);
-    
-    worldcupCardA.onclick = () => handleWorldcupChoice(menuA);
-    worldcupCardB.onclick = () => handleWorldcupChoice(menuB);
-  }
-
-  function renderWorldcupCardInner(menu) {
-    let photoUrl = '';
-    if (menu.photo) {
-      photoUrl = menu.photo;
-    } else if (menu.photos && menu.photos.length > 0) {
-      photoUrl = menu.photos[0].url;
-    } else if (menu.comments && menu.comments.find(c => c.imagePath)) {
-      photoUrl = restaurantPhotoUrl(menu.comments.find(c => c.imagePath).imagePath);
-    }
-
-    const photoHtml = photoUrl 
-      ? `<img src="${photoUrl}" alt="" style="width:100%; height:240px; object-fit:cover; border-radius:12px; margin-bottom:12px;">` 
-      : `<div style="font-size:80px; margin-bottom:12px;">${CATEGORY_EMOJI[menu.category] || '🍽️'}</div>`;
-      
-    return `
+        return `
       ${photoHtml}
       <div class="card-name">${escapeHtml(menu.name)}</div>
       <div style="font-size:16px; color:var(--ink-3);">${escapeHtml(menu.category)}</div>
     `;
-  }
+      }
 
-  function handleWorldcupChoice(winnerMenu) {
-    worldcupCardA.onclick = null;
-    worldcupCardB.onclick = null;
-    nextRoundMenus.push(winnerMenu);
-    
-    // 부드러운 화면 전환을 위해 약간의 지연(150ms) 추가
-    setTimeout(() => {
-      currentMatchIndex += 2;
-      renderWorldcupMatch();
-    }, 150);
-  }
+      function handleWorldcupChoice(winnerMenu) {
+        worldcupCardA.onclick = null;
+        worldcupCardB.onclick = null;
+        nextRoundMenus.push(winnerMenu);
 
-  function renderWorldcupWinner(winner) {
-    worldcupRoundText.textContent = "🏆 최종 우승 🏆";
-    worldcupBattleArea.style.display = 'none';
-    
-    worldcupWinnerCard.innerHTML = renderWorldcupCardInner(winner);
-    worldcupWinnerArea.classList.add('show');
-    
-    worldcupRecordBtn.onclick = async () => {
-      worldcupRecordBtn.disabled = true;
-      worldcupRecordBtn.textContent = '기록 중...';
-      try {
-        await saveHistory(winner);
-        await loadHistory();
+        // 부드러운 화면 전환을 위해 약간의 지연(150ms) 추가
+        setTimeout(() => {
+          currentMatchIndex += 2;
+          renderWorldcupMatch();
+        }, 150);
+      }
+
+      function renderWorldcupWinner(winner) {
+        worldcupRoundText.textContent = "🏆 최종 우승 🏆";
+        worldcupBattleArea.style.display = 'none';
+
+        worldcupWinnerCard.innerHTML = renderWorldcupCardInner(winner, true);
+        worldcupWinnerArea.classList.add('show');
+
+        worldcupRecordBtn.onclick = async () => {
+          worldcupRecordBtn.disabled = true;
+          worldcupRecordBtn.textContent = '기록 중...';
+          try {
+            await saveHistory(winner);
+            await loadHistory();
+            renderWeekStrip();
+            renderCalendar();
+            alert(`${winner.name}이(가) 오늘 점심으로 확정되었습니다!`);
+            worldcupPlayDialog.close();
+          } catch (error) {
+            alert('기록 중 오류가 발생했습니다.');
+          } finally {
+            worldcupRecordBtn.disabled = false;
+            worldcupRecordBtn.textContent = '오늘의 점심으로 확정 기록하기';
+          }
+        };
+      }
+
+      async function init() {
+        pickerText.textContent = '불러오는 중…';
+        await Promise.all([loadMenus(), loadHistory()]);
+        pickerText.textContent = '눌러서 뽑기';
+        renderCategoryChips();
+        renderGrid();
+        renderPhotoGallery();
+        renderStats();
         renderWeekStrip();
         renderCalendar();
-        alert(`${winner.name}이(가) 오늘 점심으로 확정되었습니다!`);
-        worldcupPlayDialog.close();
-      } catch (error) {
-        alert('기록 중 오류가 발생했습니다.');
-      } finally {
-        worldcupRecordBtn.disabled = false;
-        worldcupRecordBtn.textContent = '오늘의 점심으로 확정 기록하기';
+        initializeRestaurantMap();
       }
-    };
-  }
 
-  async function init() {
-    pickerText.textContent = '불러오는 중…';
-    await Promise.all([loadMenus(), loadHistory()]);
-    pickerText.textContent = '눌러서 뽑기';
-    renderCategoryChips();
-    renderGrid();
-    renderPhotoGallery();
-    renderStats();
-    renderWeekStrip();
-    renderCalendar();
-    initializeRestaurantMap();
-  }
-
-  init();
-})();
-</script>
+      init();
+    })();
+  </script>
 </body>
+
 </html>
