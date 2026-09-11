@@ -482,6 +482,14 @@
       background: var(--primary-strong);
     }
 
+    dialog:not([open]) {
+      display: none !important;
+    }
+
+    body:has(dialog[open]) {
+      overflow: hidden;
+    }
+
     .restaurant-dialog {
       width: min(520px, calc(100% - 28px));
       max-height: calc(100vh - 40px);
@@ -1641,12 +1649,14 @@
       box-shadow: 0 24px 70px rgba(38, 32, 25, 0.22);
       overflow: hidden;
       color: var(--ink);
+      z-index: 99999;
     }
 
     .worldcup-setup-dialog::backdrop {
       background: rgba(38, 32, 25, 0.52);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
+      z-index: 99998;
     }
 
     .worldcup-setup-content {
@@ -1836,6 +1846,10 @@
       padding: 0;
       box-shadow: 0 20px 60px rgba(38, 32, 25, 0.25);
       overflow: hidden;
+      z-index: 99999;
+    }
+
+    .worldcup-dialog[open] {
       display: flex;
       flex-direction: column;
     }
@@ -1844,6 +1858,7 @@
       background: rgba(38, 32, 25, 0.55);
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
+      z-index: 99998;
     }
 
     .worldcup-header {
@@ -4022,10 +4037,33 @@
         }
       });
 
+      function updateBodyScrollLock() {
+        if (document.querySelector('dialog[open]')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      }
+
+      worldcupSetupDialog.addEventListener('close', updateBodyScrollLock);
+      worldcupPlayDialog.addEventListener('close', () => {
+        updateBodyScrollLock();
+        worldcupWinnerArea.classList.remove('show');
+        worldcupBattleArea.style.display = 'none';
+      });
+
+      worldcupSetupDialog.addEventListener('click', (event) => {
+        if (event.target === worldcupSetupDialog) worldcupSetupDialog.close();
+      });
+      worldcupPlayDialog.addEventListener('click', (event) => {
+        if (event.target === worldcupPlayDialog) worldcupPlayDialog.close();
+      });
+
       // --- Worldcup Logic ---
       worldcupShortcutBtn.addEventListener('click', () => {
         worldcupSizeSelect.value = '8';
         worldcupSetupDialog.showModal();
+        updateBodyScrollLock();
       });
 
       worldcupSizeSelect.addEventListener('change', (e) => {
@@ -4092,6 +4130,7 @@
 
         renderWorldcupMatch();
         worldcupPlayDialog.showModal();
+        updateBodyScrollLock();
       });
 
       function renderWorldcupMatch() {
