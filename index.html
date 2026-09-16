@@ -1769,19 +1769,47 @@
 
       const CATEGORY_EMOJI = {
         '한식': '🍚',
-        '중식': '🥟',
         '일식': '🍣',
-        '베트남음식': '🍜',
+        '중식': '🥟',
         '피자·양식': '🍕',
+        '분식': '🍙',
+        '베트남음식': '🍜',
+        '태국음식': '🍛',
+        '마라탕': '🌶️',
+        '도시락': '🍱',
+        '카페·디저트': '☕',
         '술집': '🍻',
         '기타': '🍽️',
-        '도시락': '🍱',
-        '분식': '🍙',
-        '마라탕': '🌶️',
-        '일식': '🍣',
-        '태국음식': '🍛',
-        '카페·디저트': '☕',
       };
+
+      const CATEGORY_PRIORITY = [
+        '한식',
+        '일식',
+        '중식',
+        '피자·양식',
+        '양식',
+        '분식',
+        '베트남음식',
+        '태국음식',
+        '마라탕',
+        '도시락',
+        '카페·디저트',
+        '술집',
+      ];
+
+      function sortCategories(categories) {
+        return [...categories].sort((a, b) => {
+          if (a === b) return 0;
+          if (a === '기타') return 1;
+          if (b === '기타') return -1;
+          const indexA = CATEGORY_PRIORITY.indexOf(a);
+          const indexB = CATEGORY_PRIORITY.indexOf(b);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return a.localeCompare(b, 'ko');
+        });
+      }
 
 
       let menus = [];
@@ -2376,11 +2404,12 @@
         const container = document.getElementById('mealRecordCategories');
         if (!container) return;
         
-        const categories = ['전체', ...new Set(menus.map(m => m.category || '기타'))];
+        const rawCategories = [...new Set(menus.map(m => m.category || '기타'))];
+        const categories = ['전체', ...sortCategories(rawCategories.filter(c => c !== '전체'))];
         
         container.innerHTML = categories.map(c => 
           `<button type="button" class="category-btn ${c === currentMealRecordCategory ? 'active' : ''}" data-category="${c}">
-            ${c === '전체' ? '전체' : `${CATEGORY_EMOJI[c] || ''} ${c}`}
+            ${c === '전체' ? '전체' : `${CATEGORY_EMOJI[c] || '🍽️'} ${c}`}
           </button>`
         ).join('');
 
@@ -2479,12 +2508,13 @@
       }
 
       function renderCategoryChips() {
-        const cats = ['전체', ...new Set(menus.map(m => m.category))];
+        const rawCats = [...new Set(menus.map(m => m.category || '기타'))];
+        const cats = ['전체', ...sortCategories(rawCats.filter(c => c !== '전체'))];
         categoryChipsEl.innerHTML = '';
         cats.forEach(cat => {
           const btn = document.createElement('button');
           btn.className = 'chip' + (cat === activeCategory ? ' active' : '');
-          btn.textContent = cat === '전체' ? '전체' : `${CATEGORY_EMOJI[cat] || ''} ${cat}`;
+          btn.textContent = cat === '전체' ? '전체' : `${CATEGORY_EMOJI[cat] || '🍽️'} ${cat}`;
           btn.addEventListener('click', () => {
             activeCategory = cat;
             renderCategoryChips();
