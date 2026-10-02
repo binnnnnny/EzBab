@@ -2807,7 +2807,7 @@
           <span class="hint-cost">-15점</span>
         </button>
         <button type="button" class="quiz-hint-btn" id="reviewChosungHintBtn">
-          <span>🔤 초성 힌트</span>
+          <span>🔤 첫 글자 힌트</span>
           <span class="hint-cost">-25점</span>
         </button>
       </div>
@@ -5123,20 +5123,18 @@
       // ==========================================
       // Review Blind Quiz Logic (리뷰 블라인드 퀴즈)
       // ==========================================
-      function extractChosung(text) {
+      function extractFirstCharHint(text) {
         if (!text) return '';
+        const clean = text.trim().replace(/^[\(\[\{<'"‘“\s]+/, '');
+        if (!clean) return '';
+        const firstChar = clean.charAt(0);
+        const code = firstChar.charCodeAt(0) - 44032;
         const CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-        let result = '';
-        for (let i = 0; i < text.length; i++) {
-          const code = text.charCodeAt(i) - 44032;
-          if (code >= 0 && code <= 11171) {
-            const chosungIdx = Math.floor(code / 588);
-            result += CHOSUNG[chosungIdx];
-          } else {
-            result += text.charAt(i);
-          }
+        if (code >= 0 && code <= 11171) {
+          const chosungIdx = Math.floor(code / 588);
+          return CHOSUNG[chosungIdx];
         }
-        return result;
+        return firstChar;
       }
 
       function maskRestaurantName(rawContent, restaurantName) {
@@ -5369,8 +5367,8 @@
         reviewChosungHintBtn.disabled = true;
 
         reviewQuizCurrentQuestionScore = Math.max(20, reviewQuizCurrentQuestionScore - 25);
-        const chosung = extractChosung(reviewQuizCurrentTarget.menu.name);
-        reviewChosungHintBubble.textContent = `🔤 식당 초성 힌트: ${chosung}`;
+        const hintChar = extractFirstCharHint(reviewQuizCurrentTarget.menu.name);
+        reviewChosungHintBubble.textContent = `🔤 첫 글자 힌트: ${hintChar}`;
         reviewChosungHintBubble.style.display = 'flex';
       }
 
