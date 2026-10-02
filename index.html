@@ -1656,6 +1656,336 @@
       font-weight: 600;
     }
 
+    /* Worldcup Setup Dialog */
+    .worldcup-setup-dialog {
+      width: min(460px, calc(100% - 24px));
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      box-shadow: 0 24px 70px rgba(38, 32, 25, 0.28);
+      overflow: hidden;
+    }
+
+    .worldcup-setup-dialog:not([open]) {
+      display: none !important;
+    }
+
+    .worldcup-setup-dialog[open] {
+      display: flex !important;
+      flex-direction: column;
+      animation: quizFadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .worldcup-setup-dialog::backdrop {
+      background: rgba(38, 32, 25, 0.58);
+      backdrop-filter: blur(4px);
+    }
+
+    .worldcup-setup-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 0;
+    }
+
+    .worldcup-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #D96A00;
+      background: #FFF4E5;
+      border: 1px solid rgba(217, 106, 0, 0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .worldcup-setup-close-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-left: auto;
+    }
+
+    .worldcup-setup-close-btn:hover {
+      background: var(--line);
+      color: var(--ink);
+    }
+
+    .worldcup-setup-content {
+      padding: 12px 20px 22px;
+    }
+
+    .worldcup-setup-header {
+      margin-bottom: 14px;
+    }
+
+    .worldcup-setup-title {
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 4px 0 6px;
+      letter-spacing: -0.4px;
+    }
+
+    .worldcup-setup-subtitle {
+      font-size: 13.5px;
+      color: var(--ink-2);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .worldcup-status-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #FFF9F5;
+      border: 1px solid rgba(255, 90, 54, 0.18);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      margin-bottom: 16px;
+    }
+
+    .status-banner-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .status-banner-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-banner-title {
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .status-banner-title strong {
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 14.5px;
+    }
+
+    .status-banner-sub {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+
+    .worldcup-rounds-section {
+      margin-bottom: 18px;
+    }
+
+    .worldcup-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .worldcup-section-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .worldcup-match-summary {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-tint);
+      padding: 3px 9px;
+      border-radius: 12px;
+      letter-spacing: -0.2px;
+    }
+
+    .worldcup-round-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .round-card {
+      background: var(--surface);
+      border: 2px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+    }
+
+    .round-card:hover:not(:disabled) {
+      border-color: rgba(255, 90, 54, 0.45);
+      background: #FFFDFC;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 90, 54, 0.09);
+    }
+
+    .round-card.active {
+      border-color: var(--primary);
+      background: #FFF4F0;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(255, 90, 54, 0.16);
+    }
+
+    .round-card:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      background: #F9F9F7;
+      border-color: #EAE6DF;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .round-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .round-card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .round-card.active .round-card-title {
+      color: var(--primary-strong);
+    }
+
+    .round-card-tag {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .round-card-tag.speed {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .round-card-tag.popular {
+      background: #FFEBE3;
+      color: var(--primary);
+    }
+
+    .round-card-tag.standard {
+      background: #E3F2FD;
+      color: #1565C0;
+    }
+
+    .round-card-tag.master {
+      background: #F3E5F5;
+      color: #7B1FA2;
+    }
+
+    .round-card-tag.disabled-tag {
+      background: #EEEEEE;
+      color: #9E9E9E;
+    }
+
+    .round-card-desc {
+      font-size: 12px;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    .round-card.active .round-card-desc {
+      color: #9A381F;
+      font-weight: 600;
+    }
+
+    .worldcup-select-hint {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .worldcup-dialog-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .worldcup-btn-cancel {
+      flex: 1;
+      padding: 13px 16px;
+      font-size: 14.5px;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      background: var(--bg);
+      color: var(--ink-2);
+      border: 1px solid var(--line);
+      transition: all 0.18s ease;
+    }
+
+    .worldcup-btn-cancel:hover {
+      background: var(--line);
+      color: var(--ink);
+    }
+
+    .worldcup-btn-start {
+      flex: 2;
+      padding: 13px 18px;
+      font-size: 14.5px;
+      font-weight: 800;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #FF5A36 0%, #FF784E 100%);
+      color: #FFFFFF;
+      border: none;
+      box-shadow: 0 6px 18px rgba(255, 90, 54, 0.36);
+      transition: all 0.18s ease;
+    }
+
+    .worldcup-btn-start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 90, 54, 0.45);
+      filter: brightness(1.03);
+    }
+
+    .worldcup-btn-start:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(255, 90, 54, 0.3);
+    }
+
+    .worldcup-btn-start:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+      background: #D9D0C7;
+      color: #8C8276;
+    }
+
     /* Worldcup Play Dialog */
     .worldcup-dialog {
       max-width: 1000px;
@@ -2631,29 +2961,88 @@
 
   <!-- Worldcup Setup Dialog -->
   <dialog class="dialog worldcup-setup-dialog" id="worldcupSetupDialog">
+    <div class="worldcup-setup-top">
+      <div class="worldcup-badge">🏆 MINI GAME</div>
+      <button class="dialog-close-btn worldcup-setup-close-btn" id="closeWorldcupSetupBtn" type="button" aria-label="월드컵 창 닫기">×</button>
+    </div>
+
     <div class="worldcup-setup-content">
       <div class="worldcup-setup-header">
-        <div class="worldcup-badge">🏆 MINI GAME</div>
-        <h2>점심 메뉴 월드컵</h2>
-        <p>토너먼트에 참가할 식당 수를 선택하세요.</p>
+        <h2 class="worldcup-setup-title">점심 메뉴 월드컵</h2>
+        <p class="worldcup-setup-subtitle">토너먼트로 오늘 최고의 한 끼를 골라보세요!</p>
       </div>
-      <div class="worldcup-select-container">
-        <label for="worldcupSizeSelect" class="worldcup-select-label">토너먼트 라운드</label>
-        <div class="worldcup-select-wrapper">
-          <select id="worldcupSizeSelect" class="worldcup-select form-control">
-            <option value="8">8강</option>
-            <option value="16">16강</option>
-            <option value="32">32강</option>
-            <option value="64">64강</option>
-            <option value="128">128강</option>
-            <option value="256">256강</option>
-          </select>
+
+      <!-- Candidate Status Banner -->
+      <div class="worldcup-status-banner">
+        <div class="status-banner-icon">🎯</div>
+        <div class="status-banner-info">
+          <div class="status-banner-title">참여 가능 식당: <strong id="worldcupValidCount">0곳</strong></div>
+          <div class="status-banner-sub">현재 등록된 맛집 중 무작위로 매칭돼요</div>
         </div>
-        <p class="worldcup-select-hint">💡 등록된 식당 수에 맞춰 가능한 라운드가 결정돼요.</p>
       </div>
-      <div class="worldcup-dialog-actions dialog-actions">
-        <button class="worldcup-btn worldcup-btn-secondary btn btn-secondary" id="cancelWorldcupSetup" type="button">취소</button>
-        <button class="worldcup-btn worldcup-btn-primary btn btn-primary" id="startWorldcupBtn" type="button">시작하기</button>
+
+      <!-- Round Selection Section -->
+      <div class="worldcup-rounds-section">
+        <div class="worldcup-section-header">
+          <span class="worldcup-section-label">토너먼트 라운드 선택</span>
+          <span class="worldcup-match-summary" id="worldcupMatchSummary">8강 · 7경기</span>
+        </div>
+
+        <!-- Hidden select for backward compatibility -->
+        <select id="worldcupSizeSelect" style="display: none;">
+          <option value="8">8강</option>
+          <option value="16">16강</option>
+          <option value="32">32강</option>
+          <option value="64">64강</option>
+          <option value="128">128강</option>
+          <option value="256">256강</option>
+        </select>
+
+        <!-- Interactive Visual Round Grid -->
+        <div class="worldcup-round-grid" id="worldcupRoundGrid">
+          <button type="button" class="round-card active" data-size="8">
+            <div class="round-card-top">
+              <span class="round-card-title">8강</span>
+              <span class="round-card-tag speed">⚡ 스피드</span>
+            </div>
+            <div class="round-card-desc">8곳 선정 · 7경기</div>
+          </button>
+
+          <button type="button" class="round-card" data-size="16">
+            <div class="round-card-top">
+              <span class="round-card-title">16강</span>
+              <span class="round-card-tag popular">🔥 추천</span>
+            </div>
+            <div class="round-card-desc">16곳 선정 · 15경기</div>
+          </button>
+
+          <button type="button" class="round-card" data-size="32">
+            <div class="round-card-top">
+              <span class="round-card-title">32강</span>
+              <span class="round-card-tag standard">🍽️ 탐험</span>
+            </div>
+            <div class="round-card-desc">32곳 선정 · 31경기</div>
+          </button>
+
+          <button type="button" class="round-card" data-size="64">
+            <div class="round-card-top">
+              <span class="round-card-title">64강</span>
+              <span class="round-card-tag master">👑 풀매치</span>
+            </div>
+            <div class="round-card-desc">64곳 선정 · 63경기</div>
+          </button>
+        </div>
+
+        <p class="worldcup-select-hint">💡 등록된 식당 수에 맞춰 가능한 라운드가 자동으로 활성화돼요.</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="worldcup-dialog-actions">
+        <button class="btn btn-secondary worldcup-btn-cancel" id="cancelWorldcupSetup" type="button">취소</button>
+        <button class="btn btn-primary worldcup-btn-start" id="startWorldcupBtn" type="button">
+          <span>🏆</span>
+          <span>토너먼트 시작하기</span>
+        </button>
       </div>
     </div>
   </dialog>
@@ -3007,6 +3396,10 @@
       // Worldcup Elements
       const worldcupShortcutBtn = document.getElementById('worldcupShortcutBtn');
       const worldcupSetupDialog = document.getElementById('worldcupSetupDialog');
+      const closeWorldcupSetupBtn = document.getElementById('closeWorldcupSetupBtn');
+      const worldcupValidCount = document.getElementById('worldcupValidCount');
+      const worldcupMatchSummary = document.getElementById('worldcupMatchSummary');
+      const worldcupRoundGrid = document.getElementById('worldcupRoundGrid');
       const worldcupSizeSelect = document.getElementById('worldcupSizeSelect');
       const cancelWorldcupSetup = document.getElementById('cancelWorldcupSetup');
       const startWorldcupBtn = document.getElementById('startWorldcupBtn');
@@ -4680,60 +5073,103 @@
         if (event.target === worldcupPlayDialog) worldcupPlayDialog.close();
       });
 
-      // --- Worldcup Logic ---
-      worldcupShortcutBtn.addEventListener('click', () => {
-        worldcupSizeSelect.value = '8';
-        worldcupSetupDialog.showModal();
-        updateBodyScrollLock();
-      });
-
-      worldcupSizeSelect.addEventListener('change', (e) => {
-        const selectedSize = parseInt(e.target.value);
-
+      // --- Worldcup Setup Logic ---
+      function getValidWorldcupMenus() {
         let thisWeekNames = new Set();
-        if (excludeTodayToggle.checked) {
+        if (excludeTodayToggle && excludeTodayToggle.checked) {
           thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
         }
 
-        const validMenus = Array.from(menus.values()).filter(m => {
-          // 뽑기와 동일한 제외 조건
+        return menus.filter(m => {
           if (m.excluded) return false;
-          if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
+          if (excludeTodayToggle && excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
           return true;
         });
+      }
 
-        if (selectedSize > validMenus.length) {
-          alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${selectedSize}강을 진행할 수 없습니다!`);
-          let fallback = 8;
-          for (let s of [8, 16, 32, 64, 128, 256]) {
-            if (s <= validMenus.length) fallback = s;
+      function updateWorldcupRoundSelection(size) {
+        worldcupSizeSelect.value = size.toString();
+        const matches = size - 1;
+        worldcupMatchSummary.textContent = `${size}강 · 총 ${matches}경기`;
+
+        const cards = worldcupRoundGrid.querySelectorAll('.round-card');
+        cards.forEach(card => {
+          const cardSize = parseInt(card.dataset.size);
+          if (cardSize === size) {
+            card.classList.add('active');
+          } else {
+            card.classList.remove('active');
           }
-          if (validMenus.length < 8) {
-            alert("식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!");
+        });
+      }
+
+      function openWorldcupSetup() {
+        const validMenus = getValidWorldcupMenus();
+        const count = validMenus.length;
+
+        worldcupValidCount.textContent = `${count}곳`;
+
+        const cards = worldcupRoundGrid.querySelectorAll('.round-card');
+        cards.forEach(card => {
+          const size = parseInt(card.dataset.size);
+          const tag = card.querySelector('.round-card-tag');
+
+          if (!card.dataset.defaultTag) {
+            card.dataset.defaultTag = tag.textContent;
+            card.dataset.defaultClass = tag.className;
           }
-          e.target.value = fallback.toString();
+
+          if (size <= count) {
+            card.disabled = false;
+            tag.textContent = card.dataset.defaultTag;
+            tag.className = card.dataset.defaultClass;
+          } else {
+            card.disabled = true;
+            tag.textContent = '부족';
+            tag.className = 'round-card-tag disabled-tag';
+          }
+        });
+
+        if (count < 8) {
+          startWorldcupBtn.disabled = true;
+          worldcupMatchSummary.textContent = '최소 8곳 필요';
+          worldcupMatchSummary.style.color = '#E8431F';
+          worldcupMatchSummary.style.background = '#FFEBE3';
+        } else {
+          startWorldcupBtn.disabled = false;
+          worldcupMatchSummary.style.color = '';
+          worldcupMatchSummary.style.background = '';
+          const defaultSize = count >= 16 ? 16 : 8;
+          updateWorldcupRoundSelection(defaultSize);
         }
-      });
 
+        worldcupSetupDialog.showModal();
+        updateBodyScrollLock();
+      }
+
+      worldcupShortcutBtn.addEventListener('click', openWorldcupSetup);
+      closeWorldcupSetupBtn.addEventListener('click', () => worldcupSetupDialog.close());
       cancelWorldcupSetup.addEventListener('click', () => worldcupSetupDialog.close());
       closeWorldcupPlay.addEventListener('click', () => worldcupPlayDialog.close());
 
+      worldcupRoundGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('.round-card');
+        if (!card || card.disabled) return;
+        const size = parseInt(card.dataset.size);
+        updateWorldcupRoundSelection(size);
+      });
+
       startWorldcupBtn.addEventListener('click', () => {
         let size = parseInt(worldcupSizeSelect.value);
+        let validMenus = getValidWorldcupMenus();
 
-        let thisWeekNames = new Set();
-        if (excludeTodayToggle.checked) {
-          thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+        if (validMenus.length < 8) {
+          alert('식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!');
+          return;
         }
 
-        let validMenus = Array.from(menus.values()).filter(m => {
-          if (m.excluded) return false;
-          if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
-          return true;
-        });
-
         if (size > validMenus.length) {
-          alert("식당 수가 부족합니다.");
+          alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${size}강을 진행할 수 없습니다!`);
           return;
         }
 
