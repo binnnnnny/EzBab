@@ -1656,6 +1656,336 @@
       font-weight: 600;
     }
 
+    /* Worldcup Setup Dialog */
+    .worldcup-setup-dialog {
+      width: min(460px, calc(100% - 24px));
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      box-shadow: 0 24px 70px rgba(38, 32, 25, 0.28);
+      overflow: hidden;
+    }
+
+    .worldcup-setup-dialog:not([open]) {
+      display: none !important;
+    }
+
+    .worldcup-setup-dialog[open] {
+      display: flex !important;
+      flex-direction: column;
+      animation: quizFadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .worldcup-setup-dialog::backdrop {
+      background: rgba(38, 32, 25, 0.58);
+      backdrop-filter: blur(4px);
+    }
+
+    .worldcup-setup-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 0;
+    }
+
+    .worldcup-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #D96A00;
+      background: #FFF4E5;
+      border: 1px solid rgba(217, 106, 0, 0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .worldcup-setup-close-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-left: auto;
+    }
+
+    .worldcup-setup-close-btn:hover {
+      background: var(--line);
+      color: var(--ink);
+    }
+
+    .worldcup-setup-content {
+      padding: 12px 20px 22px;
+    }
+
+    .worldcup-setup-header {
+      margin-bottom: 14px;
+    }
+
+    .worldcup-setup-title {
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 4px 0 6px;
+      letter-spacing: -0.4px;
+    }
+
+    .worldcup-setup-subtitle {
+      font-size: 13.5px;
+      color: var(--ink-2);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .worldcup-status-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #FFF9F5;
+      border: 1px solid rgba(255, 90, 54, 0.18);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      margin-bottom: 16px;
+    }
+
+    .status-banner-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .status-banner-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-banner-title {
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .status-banner-title strong {
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 14.5px;
+    }
+
+    .status-banner-sub {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+
+    .worldcup-rounds-section {
+      margin-bottom: 18px;
+    }
+
+    .worldcup-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .worldcup-section-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .worldcup-match-summary {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-tint);
+      padding: 3px 9px;
+      border-radius: 12px;
+      letter-spacing: -0.2px;
+    }
+
+    .worldcup-round-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .round-card {
+      background: var(--surface);
+      border: 2px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+    }
+
+    .round-card:hover:not(:disabled) {
+      border-color: rgba(255, 90, 54, 0.45);
+      background: #FFFDFC;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 90, 54, 0.09);
+    }
+
+    .round-card.active {
+      border-color: var(--primary);
+      background: #FFF4F0;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(255, 90, 54, 0.16);
+    }
+
+    .round-card:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      background: #F9F9F7;
+      border-color: #EAE6DF;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .round-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .round-card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .round-card.active .round-card-title {
+      color: var(--primary-strong);
+    }
+
+    .round-card-tag {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .round-card-tag.speed {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .round-card-tag.popular {
+      background: #FFEBE3;
+      color: var(--primary);
+    }
+
+    .round-card-tag.standard {
+      background: #E3F2FD;
+      color: #1565C0;
+    }
+
+    .round-card-tag.master {
+      background: #F3E5F5;
+      color: #7B1FA2;
+    }
+
+    .round-card-tag.disabled-tag {
+      background: #EEEEEE;
+      color: #9E9E9E;
+    }
+
+    .round-card-desc {
+      font-size: 12px;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    .round-card.active .round-card-desc {
+      color: #9A381F;
+      font-weight: 600;
+    }
+
+    .worldcup-select-hint {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .worldcup-dialog-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .worldcup-btn-cancel {
+      flex: 1;
+      padding: 13px 16px;
+      font-size: 14.5px;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      background: var(--bg);
+      color: var(--ink-2);
+      border: 1px solid var(--line);
+      transition: all 0.18s ease;
+    }
+
+    .worldcup-btn-cancel:hover {
+      background: var(--line);
+      color: var(--ink);
+    }
+
+    .worldcup-btn-start {
+      flex: 2;
+      padding: 13px 18px;
+      font-size: 14.5px;
+      font-weight: 800;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #FF5A36 0%, #FF784E 100%);
+      color: #FFFFFF;
+      border: none;
+      box-shadow: 0 6px 18px rgba(255, 90, 54, 0.36);
+      transition: all 0.18s ease;
+    }
+
+    .worldcup-btn-start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 90, 54, 0.45);
+      filter: brightness(1.03);
+    }
+
+    .worldcup-btn-start:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(255, 90, 54, 0.3);
+    }
+
+    .worldcup-btn-start:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+      background: #D9D0C7;
+      color: #8C8276;
+    }
+
     /* Worldcup Play Dialog */
     .worldcup-dialog {
       max-width: 1000px;
@@ -1832,6 +2162,7 @@
       color: var(--ink-2);
       font-size: 20px;
       cursor: pointer;
+      margin-left: auto;
       transition: all 0.15s ease;
     }
 
@@ -2246,10 +2577,179 @@
       cursor: pointer;
     }
 
-    /* Empty state */
-    .quiz-empty-area {
-      text-align: center;
-      padding: 36px 20px;
+    /* Review Blind Quiz Dialog */
+    .review-quiz-dialog {
+      width: min(500px, calc(100% - 24px));
+      max-height: min(92vh, 760px);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      box-shadow: 0 24px 70px rgba(38, 32, 25, 0.28);
+      overflow: hidden;
+    }
+
+    .review-quiz-dialog:not([open]) {
+      display: none !important;
+    }
+
+    .review-quiz-dialog[open] {
+      display: flex !important;
+      flex-direction: column;
+    }
+
+    .review-quiz-dialog::backdrop {
+      background: rgba(38, 32, 25, 0.58);
+      backdrop-filter: blur(4px);
+    }
+
+    .review-quote-card {
+      background: #FFFDF9;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: 0 4px 16px rgba(120, 80, 40, 0.05);
+      position: relative;
+    }
+
+    .review-quote-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .review-author-pill {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-tint);
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .review-date-text {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+
+    .review-quote-body {
+      position: relative;
+      padding: 6px 14px;
+    }
+
+    .quote-mark {
+      font-family: Georgia, serif;
+      font-size: 32px;
+      line-height: 1;
+      color: var(--primary);
+      opacity: 0.35;
+      position: absolute;
+      user-select: none;
+    }
+
+    .quote-mark.open {
+      top: -10px;
+      left: -6px;
+    }
+
+    .quote-mark.close {
+      bottom: -16px;
+      right: -6px;
+    }
+
+    .review-quote-content {
+      font-size: 15.5px;
+      line-height: 1.65;
+      color: var(--ink);
+      font-weight: 600;
+      margin: 0;
+      word-break: keep-all;
+      letter-spacing: -0.3px;
+    }
+
+    .review-quote-content .masked-kw {
+      display: inline-block;
+      padding: 1px 7px;
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-radius: 6px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .review-revealed-card {
+      margin-top: 12px;
+      background: #FAFAF7;
+      border: 1.5px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: quizFadeUp 0.3s ease-out;
+    }
+
+    .review-revealed-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: var(--primary-tint);
+      flex-shrink: 0;
+    }
+
+    .review-revealed-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .review-revealed-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .review-revealed-sub {
+      font-size: 12px;
+      color: var(--ink-2);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .quiz-thumb-fallback,
+    .review-thumb-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-tint);
+      border-radius: var(--radius-sm);
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .quiz-thumb-fallback {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+      border-radius: 6px;
+    }
+
+    .review-thumb-fallback {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -2303,6 +2803,10 @@
       <button class="shortcut-btn" id="photoQuizShortcutBtn" type="button">
         <div class="shortcut-icon">🔍</div>
         <span class="shortcut-label">줌인 퀴즈</span>
+      </button>
+      <button class="shortcut-btn" id="reviewQuizShortcutBtn" type="button">
+        <div class="shortcut-icon">💬</div>
+        <span class="shortcut-label">리뷰 퀴즈</span>
       </button>
     </section>
 
@@ -2457,29 +2961,88 @@
 
   <!-- Worldcup Setup Dialog -->
   <dialog class="dialog worldcup-setup-dialog" id="worldcupSetupDialog">
+    <div class="worldcup-setup-top">
+      <div class="worldcup-badge">🏆 MINI GAME</div>
+      <button class="dialog-close-btn worldcup-setup-close-btn" id="closeWorldcupSetupBtn" type="button" aria-label="월드컵 창 닫기">×</button>
+    </div>
+
     <div class="worldcup-setup-content">
       <div class="worldcup-setup-header">
-        <div class="worldcup-badge">🏆 MINI GAME</div>
-        <h2>점심 메뉴 월드컵</h2>
-        <p>토너먼트에 참가할 식당 수를 선택하세요.</p>
+        <h2 class="worldcup-setup-title">점심 메뉴 월드컵</h2>
+        <p class="worldcup-setup-subtitle">토너먼트로 오늘 최고의 한 끼를 골라보세요!</p>
       </div>
-      <div class="worldcup-select-container">
-        <label for="worldcupSizeSelect" class="worldcup-select-label">토너먼트 라운드</label>
-        <div class="worldcup-select-wrapper">
-          <select id="worldcupSizeSelect" class="worldcup-select form-control">
-            <option value="8">8강</option>
-            <option value="16">16강</option>
-            <option value="32">32강</option>
-            <option value="64">64강</option>
-            <option value="128">128강</option>
-            <option value="256">256강</option>
-          </select>
+
+      <!-- Candidate Status Banner -->
+      <div class="worldcup-status-banner">
+        <div class="status-banner-icon">🎯</div>
+        <div class="status-banner-info">
+          <div class="status-banner-title">참여 가능 식당: <strong id="worldcupValidCount">0곳</strong></div>
+          <div class="status-banner-sub">현재 등록된 맛집 중 무작위로 매칭돼요</div>
         </div>
-        <p class="worldcup-select-hint">💡 등록된 식당 수에 맞춰 가능한 라운드가 결정돼요.</p>
       </div>
-      <div class="worldcup-dialog-actions dialog-actions">
-        <button class="worldcup-btn worldcup-btn-secondary btn btn-secondary" id="cancelWorldcupSetup" type="button">취소</button>
-        <button class="worldcup-btn worldcup-btn-primary btn btn-primary" id="startWorldcupBtn" type="button">시작하기</button>
+
+      <!-- Round Selection Section -->
+      <div class="worldcup-rounds-section">
+        <div class="worldcup-section-header">
+          <span class="worldcup-section-label">토너먼트 라운드 선택</span>
+          <span class="worldcup-match-summary" id="worldcupMatchSummary">8강 · 7경기</span>
+        </div>
+
+        <!-- Hidden select for backward compatibility -->
+        <select id="worldcupSizeSelect" style="display: none;">
+          <option value="8">8강</option>
+          <option value="16">16강</option>
+          <option value="32">32강</option>
+          <option value="64">64강</option>
+          <option value="128">128강</option>
+          <option value="256">256강</option>
+        </select>
+
+        <!-- Interactive Visual Round Grid -->
+        <div class="worldcup-round-grid" id="worldcupRoundGrid">
+          <button type="button" class="round-card active" data-size="8">
+            <div class="round-card-top">
+              <span class="round-card-title">8강</span>
+              <span class="round-card-tag speed">⚡ 스피드</span>
+            </div>
+            <div class="round-card-desc">8곳 선정 · 7경기</div>
+          </button>
+
+          <button type="button" class="round-card" data-size="16">
+            <div class="round-card-top">
+              <span class="round-card-title">16강</span>
+              <span class="round-card-tag popular">🔥 추천</span>
+            </div>
+            <div class="round-card-desc">16곳 선정 · 15경기</div>
+          </button>
+
+          <button type="button" class="round-card" data-size="32">
+            <div class="round-card-top">
+              <span class="round-card-title">32강</span>
+              <span class="round-card-tag standard">🍽️ 탐험</span>
+            </div>
+            <div class="round-card-desc">32곳 선정 · 31경기</div>
+          </button>
+
+          <button type="button" class="round-card" data-size="64">
+            <div class="round-card-top">
+              <span class="round-card-title">64강</span>
+              <span class="round-card-tag master">👑 풀매치</span>
+            </div>
+            <div class="round-card-desc">64곳 선정 · 63경기</div>
+          </button>
+        </div>
+
+        <p class="worldcup-select-hint">💡 등록된 식당 수에 맞춰 가능한 라운드가 자동으로 활성화돼요.</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="worldcup-dialog-actions">
+        <button class="btn btn-secondary worldcup-btn-cancel" id="cancelWorldcupSetup" type="button">취소</button>
+        <button class="btn btn-primary worldcup-btn-start" id="startWorldcupBtn" type="button">
+          <span>🏆</span>
+          <span>토너먼트 시작하기</span>
+        </button>
       </div>
     </div>
   </dialog>
@@ -2586,6 +3149,105 @@
         식당 메뉴에서 사진을 등록한 후 다시 시작해주세요!
       </p>
       <button type="button" class="btn btn-primary" id="quizEmptyConfirmBtn" style="min-width: 120px; padding: 10px 20px; border-radius: var(--radius-md);">확인</button>
+    </div>
+  </dialog>
+
+  <!-- Review Blind Quiz Dialog -->
+  <dialog class="dialog review-quiz-dialog" id="reviewQuizDialog">
+    <div class="quiz-header">
+      <div class="quiz-header-meta" id="reviewQuizHeaderMeta">
+        <span class="quiz-round-tag" id="reviewQuizRoundText">Q 1 / 5</span>
+        <span class="quiz-score-pill" id="reviewQuizScoreText">점수: 0점</span>
+      </div>
+      <button class="dialog-close-btn quiz-close-btn dialog-close" id="closeReviewQuizBtn" type="button" aria-label="리뷰 퀴즈 닫기">×</button>
+    </div>
+
+    <!-- Active Quiz Area -->
+    <div class="quiz-content" id="reviewQuizActiveArea">
+      <!-- Quote Card -->
+      <div class="review-quote-card">
+        <div class="review-quote-header">
+          <span class="review-author-pill">💬 <span id="reviewAuthorText">동료 리뷰</span></span>
+          <span class="review-date-text" id="reviewDateText">2026.03.15</span>
+        </div>
+        <div class="review-quote-body">
+          <span class="quote-mark open">“</span>
+          <p class="review-quote-content" id="reviewQuoteContent">
+            <!-- Review text with masked keyword -->
+          </p>
+          <span class="quote-mark close">”</span>
+        </div>
+      </div>
+
+      <!-- Revealed Card (Shown upon correct answer) -->
+      <div class="review-revealed-card" id="reviewRevealedCard" style="display:none;">
+        <img src="" alt="식당 썸네일" id="reviewRevealedThumb" class="review-revealed-thumb" style="display:none;" onerror="this.style.display='none'; document.getElementById('reviewRevealedFallback').style.display='flex';">
+        <div id="reviewRevealedFallback" class="review-thumb-fallback" style="display:none;">🍽️</div>
+        <div class="review-revealed-info">
+          <div class="review-revealed-title" id="reviewRevealedTitle">식당 이름</div>
+          <div class="review-revealed-sub" id="reviewRevealedSub">카테고리 · 주소</div>
+        </div>
+      </div>
+
+      <!-- Hints Row -->
+      <div class="quiz-hints-row" style="margin-top: 14px;">
+        <button type="button" class="quiz-hint-btn" id="reviewCatHintBtn">
+          <span>💡 카테고리 힌트</span>
+          <span class="hint-cost">-15점</span>
+        </button>
+        <button type="button" class="quiz-hint-btn" id="reviewChosungHintBtn">
+          <span>🔤 첫 글자 힌트</span>
+          <span class="hint-cost">-25점</span>
+        </button>
+      </div>
+      <div class="quiz-hint-bubble" id="reviewCatHintBubble" style="display:none;"></div>
+      <div class="quiz-hint-bubble" id="reviewChosungHintBubble" style="display:none;"></div>
+
+      <!-- Options Grid -->
+      <div class="quiz-options-grid" id="reviewQuizOptionsGrid">
+        <!-- Option buttons dynamically populated by JS -->
+      </div>
+
+      <!-- Next Button Footer Action -->
+      <div class="quiz-footer-action" id="reviewQuizFooterAction" style="display:none;">
+        <button type="button" class="quiz-next-btn btn btn-primary" id="reviewQuizNextBtn">
+          다음 문제로 ➔
+        </button>
+      </div>
+    </div>
+
+    <!-- Final Result Area -->
+    <div class="quiz-content quiz-result-area" id="reviewQuizResultArea" style="display:none;">
+      <div class="quiz-result-trophy" id="reviewQuizResultTrophy">🏆</div>
+      <h3 class="quiz-result-title">리뷰 퀴즈 완료!</h3>
+      <div class="quiz-result-score-box">
+        <div class="score-label">최종 획득 점수</div>
+        <div class="score-val" id="reviewQuizFinalScore">0 <span style="font-size:16px; font-weight:600; color:var(--ink-2);">/ 500점</span></div>
+      </div>
+      <div>
+        <div class="quiz-result-tier-badge" id="reviewQuizResultTier">👑 사내 맛잘알 공인 1급</div>
+      </div>
+      <p class="quiz-result-desc" id="reviewQuizResultDesc">팀원들의 한 줄 리뷰만 보고도 척척 맞히는 찐미식가!</p>
+
+      <div class="quiz-summary-list" id="reviewQuizSummaryList">
+        <!-- Summary of tested reviews & restaurants -->
+      </div>
+
+      <div class="quiz-result-actions">
+        <button type="button" class="btn btn-secondary" id="reviewQuizRetryBtn">🔄 다시 도전하기</button>
+        <button type="button" class="btn btn-primary" id="reviewQuizCloseResultBtn">닫기</button>
+      </div>
+    </div>
+
+    <!-- Empty State Area (유효 리뷰 부족 시) -->
+    <div class="quiz-content quiz-empty-area" id="reviewQuizEmptyArea" style="display:none;">
+      <div style="font-size: 52px; margin-bottom: 10px;">💬</div>
+      <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 800;">등록된 팀원 리뷰가 부족해요</h3>
+      <p style="color: var(--ink-2); font-size: 14px; line-height: 1.5; margin: 0 0 20px;">
+        리뷰 블라인드 퀴즈를 즐기려면 리뷰가 작성된 식당이 <strong>최소 4곳 이상</strong> 필요합니다.<br>
+        식당 카드에서 팀원 리뷰나 한 줄 소개를 남겨주세요!
+      </p>
+      <button type="button" class="btn btn-primary" id="reviewQuizEmptyConfirmBtn" style="min-width: 120px; padding: 10px 20px; border-radius: var(--radius-md);">확인</button>
     </div>
   </dialog>
 
@@ -2734,6 +3396,10 @@
       // Worldcup Elements
       const worldcupShortcutBtn = document.getElementById('worldcupShortcutBtn');
       const worldcupSetupDialog = document.getElementById('worldcupSetupDialog');
+      const closeWorldcupSetupBtn = document.getElementById('closeWorldcupSetupBtn');
+      const worldcupValidCount = document.getElementById('worldcupValidCount');
+      const worldcupMatchSummary = document.getElementById('worldcupMatchSummary');
+      const worldcupRoundGrid = document.getElementById('worldcupRoundGrid');
       const worldcupSizeSelect = document.getElementById('worldcupSizeSelect');
       const cancelWorldcupSetup = document.getElementById('cancelWorldcupSetup');
       const startWorldcupBtn = document.getElementById('startWorldcupBtn');
@@ -2790,6 +3456,48 @@
       let quizZoomHintUsed = false;
       let quizCatHintUsed = false;
 
+      // Review Blind Quiz Elements
+      const reviewQuizShortcutBtn = document.getElementById('reviewQuizShortcutBtn');
+      const reviewQuizDialog = document.getElementById('reviewQuizDialog');
+      const closeReviewQuizBtn = document.getElementById('closeReviewQuizBtn');
+      const reviewQuizActiveArea = document.getElementById('reviewQuizActiveArea');
+      const reviewQuizResultArea = document.getElementById('reviewQuizResultArea');
+      const reviewQuizEmptyArea = document.getElementById('reviewQuizEmptyArea');
+      const reviewQuizHeaderMeta = document.getElementById('reviewQuizHeaderMeta');
+      const reviewQuizRoundText = document.getElementById('reviewQuizRoundText');
+      const reviewQuizScoreText = document.getElementById('reviewQuizScoreText');
+      const reviewAuthorText = document.getElementById('reviewAuthorText');
+      const reviewDateText = document.getElementById('reviewDateText');
+      const reviewQuoteContent = document.getElementById('reviewQuoteContent');
+      const reviewRevealedCard = document.getElementById('reviewRevealedCard');
+      const reviewRevealedThumb = document.getElementById('reviewRevealedThumb');
+      const reviewRevealedFallback = document.getElementById('reviewRevealedFallback');
+      const reviewRevealedTitle = document.getElementById('reviewRevealedTitle');
+      const reviewRevealedSub = document.getElementById('reviewRevealedSub');
+      const reviewCatHintBtn = document.getElementById('reviewCatHintBtn');
+      const reviewChosungHintBtn = document.getElementById('reviewChosungHintBtn');
+      const reviewCatHintBubble = document.getElementById('reviewCatHintBubble');
+      const reviewChosungHintBubble = document.getElementById('reviewChosungHintBubble');
+      const reviewQuizOptionsGrid = document.getElementById('reviewQuizOptionsGrid');
+      const reviewQuizFooterAction = document.getElementById('reviewQuizFooterAction');
+      const reviewQuizNextBtn = document.getElementById('reviewQuizNextBtn');
+      const reviewQuizResultTrophy = document.getElementById('reviewQuizResultTrophy');
+      const reviewQuizFinalScore = document.getElementById('reviewQuizFinalScore');
+      const reviewQuizResultTier = document.getElementById('reviewQuizResultTier');
+      const reviewQuizResultDesc = document.getElementById('reviewQuizResultDesc');
+      const reviewQuizSummaryList = document.getElementById('reviewQuizSummaryList');
+      const reviewQuizRetryBtn = document.getElementById('reviewQuizRetryBtn');
+      const reviewQuizCloseResultBtn = document.getElementById('reviewQuizCloseResultBtn');
+      const reviewQuizEmptyConfirmBtn = document.getElementById('reviewQuizEmptyConfirmBtn');
+
+      let reviewQuizTargetList = [];
+      let reviewQuizCurrentIndex = 0;
+      let reviewQuizCurrentTarget = null;
+      let reviewQuizCurrentQuestionScore = 100;
+      let reviewQuizTotalScore = 0;
+      let reviewQuizAnswered = false;
+      let reviewCatHintUsed = false;
+      let reviewChosungHintUsed = false;
 
       function resetRestaurantDialogToAddMode() {
         editingId = null;
@@ -4365,60 +5073,103 @@
         if (event.target === worldcupPlayDialog) worldcupPlayDialog.close();
       });
 
-      // --- Worldcup Logic ---
-      worldcupShortcutBtn.addEventListener('click', () => {
-        worldcupSizeSelect.value = '8';
-        worldcupSetupDialog.showModal();
-        updateBodyScrollLock();
-      });
-
-      worldcupSizeSelect.addEventListener('change', (e) => {
-        const selectedSize = parseInt(e.target.value);
-
+      // --- Worldcup Setup Logic ---
+      function getValidWorldcupMenus() {
         let thisWeekNames = new Set();
-        if (excludeTodayToggle.checked) {
+        if (excludeTodayToggle && excludeTodayToggle.checked) {
           thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
         }
 
-        const validMenus = Array.from(menus.values()).filter(m => {
-          // 뽑기와 동일한 제외 조건
+        return menus.filter(m => {
           if (m.excluded) return false;
-          if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
+          if (excludeTodayToggle && excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
           return true;
         });
+      }
 
-        if (selectedSize > validMenus.length) {
-          alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${selectedSize}강을 진행할 수 없습니다!`);
-          let fallback = 8;
-          for (let s of [8, 16, 32, 64, 128, 256]) {
-            if (s <= validMenus.length) fallback = s;
+      function updateWorldcupRoundSelection(size) {
+        worldcupSizeSelect.value = size.toString();
+        const matches = size - 1;
+        worldcupMatchSummary.textContent = `${size}강 · 총 ${matches}경기`;
+
+        const cards = worldcupRoundGrid.querySelectorAll('.round-card');
+        cards.forEach(card => {
+          const cardSize = parseInt(card.dataset.size);
+          if (cardSize === size) {
+            card.classList.add('active');
+          } else {
+            card.classList.remove('active');
           }
-          if (validMenus.length < 8) {
-            alert("식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!");
+        });
+      }
+
+      function openWorldcupSetup() {
+        const validMenus = getValidWorldcupMenus();
+        const count = validMenus.length;
+
+        worldcupValidCount.textContent = `${count}곳`;
+
+        const cards = worldcupRoundGrid.querySelectorAll('.round-card');
+        cards.forEach(card => {
+          const size = parseInt(card.dataset.size);
+          const tag = card.querySelector('.round-card-tag');
+
+          if (!card.dataset.defaultTag) {
+            card.dataset.defaultTag = tag.textContent;
+            card.dataset.defaultClass = tag.className;
           }
-          e.target.value = fallback.toString();
+
+          if (size <= count) {
+            card.disabled = false;
+            tag.textContent = card.dataset.defaultTag;
+            tag.className = card.dataset.defaultClass;
+          } else {
+            card.disabled = true;
+            tag.textContent = '부족';
+            tag.className = 'round-card-tag disabled-tag';
+          }
+        });
+
+        if (count < 8) {
+          startWorldcupBtn.disabled = true;
+          worldcupMatchSummary.textContent = '최소 8곳 필요';
+          worldcupMatchSummary.style.color = '#E8431F';
+          worldcupMatchSummary.style.background = '#FFEBE3';
+        } else {
+          startWorldcupBtn.disabled = false;
+          worldcupMatchSummary.style.color = '';
+          worldcupMatchSummary.style.background = '';
+          const defaultSize = count >= 16 ? 16 : 8;
+          updateWorldcupRoundSelection(defaultSize);
         }
-      });
 
+        worldcupSetupDialog.showModal();
+        updateBodyScrollLock();
+      }
+
+      worldcupShortcutBtn.addEventListener('click', openWorldcupSetup);
+      closeWorldcupSetupBtn.addEventListener('click', () => worldcupSetupDialog.close());
       cancelWorldcupSetup.addEventListener('click', () => worldcupSetupDialog.close());
       closeWorldcupPlay.addEventListener('click', () => worldcupPlayDialog.close());
 
+      worldcupRoundGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('.round-card');
+        if (!card || card.disabled) return;
+        const size = parseInt(card.dataset.size);
+        updateWorldcupRoundSelection(size);
+      });
+
       startWorldcupBtn.addEventListener('click', () => {
         let size = parseInt(worldcupSizeSelect.value);
+        let validMenus = getValidWorldcupMenus();
 
-        let thisWeekNames = new Set();
-        if (excludeTodayToggle.checked) {
-          thisWeekNames = new Set(history.filter(h => thisWeekDates().includes(h.date)).map(h => h.name));
+        if (validMenus.length < 8) {
+          alert('식당이 8개 미만입니다. 더 많은 식당을 등록해주세요!');
+          return;
         }
 
-        let validMenus = Array.from(menus.values()).filter(m => {
-          if (m.excluded) return false;
-          if (excludeTodayToggle.checked && thisWeekNames.has(m.name)) return false;
-          return true;
-        });
-
         if (size > validMenus.length) {
-          alert("식당 수가 부족합니다.");
+          alert(`현재 진행 가능한 식당 수가 ${validMenus.length}개라서 ${size}강을 진행할 수 없습니다!`);
           return;
         }
 
@@ -4802,6 +5553,355 @@
       photoQuizDialog.addEventListener('click', (event) => {
         if (event.target === photoQuizDialog) {
           photoQuizDialog.close();
+        }
+      });
+
+      // ==========================================
+      // Review Blind Quiz Logic (리뷰 블라인드 퀴즈)
+      // ==========================================
+      function extractFirstCharHint(text) {
+        if (!text) return '';
+        const clean = text.trim().replace(/^[\(\[\{<'"‘“\s]+/, '');
+        if (!clean) return '';
+        const firstChar = clean.charAt(0);
+        const code = firstChar.charCodeAt(0) - 44032;
+        const CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        if (code >= 0 && code <= 11171) {
+          const chosungIdx = Math.floor(code / 588);
+          return CHOSUNG[chosungIdx];
+        }
+        return firstChar;
+      }
+
+      function maskRestaurantName(rawContent, restaurantName) {
+        if (!rawContent) return '';
+        let safeContent = escapeHtml(rawContent);
+        if (!restaurantName) return safeContent;
+
+        const cleanName = restaurantName.trim();
+        const tokens = [cleanName, ...cleanName.replace(/[\(\)\[\]·,.-]/g, ' ').split(/\s+/).filter(t => t.length >= 2)];
+        const uniqueTokens = Array.from(new Set(tokens)).sort((a, b) => b.length - a.length);
+
+        for (const token of uniqueTokens) {
+          const escapedToken = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(escapedToken, 'gi');
+          safeContent = safeContent.replace(regex, '<span class="masked-kw">[OOO]</span>');
+        }
+        return safeContent;
+      }
+
+      function collectValidReviews() {
+        if (!Array.isArray(menus)) return [];
+
+        const restaurantMap = new Map();
+
+        menus.forEach(m => {
+          const reviews = [];
+          if (Array.isArray(m.comments)) {
+            m.comments.forEach(c => {
+              if (c && c.content && typeof c.content === 'string') {
+                const trimmed = c.content.trim();
+                if (trimmed.length >= 6) {
+                  reviews.push({
+                    text: trimmed,
+                    author: c.authorName || '동료 리뷰',
+                    date: c.createdAt ? new Date(c.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '최근 리뷰',
+                    imagePath: c.imagePath || null,
+                    type: 'comment'
+                  });
+                }
+              }
+            });
+          }
+
+          if (m.review && typeof m.review === 'string') {
+            const trimmedDesc = m.review.trim();
+            if (trimmedDesc.length >= 6) {
+              reviews.push({
+                text: trimmedDesc,
+                author: '한 줄 소개',
+                date: '이지테이블 소개',
+                imagePath: null,
+                type: 'description'
+              });
+            }
+          }
+
+          if (reviews.length > 0) {
+            restaurantMap.set(m.id, {
+              menu: m,
+              reviews
+            });
+          }
+        });
+
+        return Array.from(restaurantMap.values());
+      }
+
+      function openReviewQuiz() {
+        if (!Array.isArray(menus) || menus.length === 0) {
+          alert('식당 목록을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+          return;
+        }
+
+        const validRestaurants = collectValidReviews();
+
+        if (validRestaurants.length < 4) {
+          reviewQuizActiveArea.style.display = 'none';
+          reviewQuizResultArea.style.display = 'none';
+          reviewQuizEmptyArea.style.display = 'block';
+          reviewQuizDialog.showModal();
+          updateBodyScrollLock();
+          return;
+        }
+
+        reviewQuizEmptyArea.style.display = 'none';
+        startReviewQuizGame(validRestaurants);
+      }
+
+      function startReviewQuizGame(validRestaurants) {
+        const shuffled = [...validRestaurants].sort(() => Math.random() - 0.5);
+        const selectedRestaurants = shuffled.slice(0, Math.min(5, shuffled.length));
+
+        reviewQuizTargetList = selectedRestaurants.map(item => {
+          const randomReview = item.reviews[Math.floor(Math.random() * item.reviews.length)];
+          return {
+            menu: item.menu,
+            review: randomReview
+          };
+        });
+
+        reviewQuizCurrentIndex = 0;
+        reviewQuizTotalScore = 0;
+
+        reviewQuizActiveArea.style.display = 'flex';
+        reviewQuizResultArea.style.display = 'none';
+        reviewQuizEmptyArea.style.display = 'none';
+
+        if (!reviewQuizDialog.open) {
+          reviewQuizDialog.showModal();
+        }
+        updateBodyScrollLock();
+
+        renderReviewQuizQuestion();
+      }
+
+      function renderReviewQuizQuestion() {
+        if (reviewQuizCurrentIndex >= reviewQuizTargetList.length) {
+          renderReviewQuizFinalResult();
+          return;
+        }
+
+        reviewQuizCurrentTarget = reviewQuizTargetList[reviewQuizCurrentIndex];
+        reviewQuizAnswered = false;
+        reviewCatHintUsed = false;
+        reviewChosungHintUsed = false;
+        reviewQuizCurrentQuestionScore = 100;
+
+        reviewQuizHeaderMeta.style.display = 'flex';
+        reviewQuizRoundText.textContent = `Q ${reviewQuizCurrentIndex + 1} / ${reviewQuizTargetList.length}`;
+        reviewQuizScoreText.textContent = `점수: ${reviewQuizTotalScore}점`;
+        reviewQuizScoreText.classList.remove('pop');
+
+        const { menu, review } = reviewQuizCurrentTarget;
+
+        reviewAuthorText.textContent = review.author;
+        reviewDateText.textContent = review.date;
+        reviewQuoteContent.innerHTML = maskRestaurantName(review.text, menu.name);
+
+        reviewRevealedCard.style.display = 'none';
+
+        reviewCatHintBtn.disabled = false;
+        reviewChosungHintBtn.disabled = false;
+        reviewCatHintBubble.style.display = 'none';
+        reviewCatHintBubble.textContent = '';
+        reviewChosungHintBubble.style.display = 'none';
+        reviewChosungHintBubble.textContent = '';
+
+        const otherMenus = menus.filter(m => m.id !== menu.id);
+        const shuffledOthers = [...otherMenus].sort(() => Math.random() - 0.5);
+        const distractors = shuffledOthers.slice(0, 3);
+        const options = [menu, ...distractors].sort(() => Math.random() - 0.5);
+
+        reviewQuizOptionsGrid.innerHTML = '';
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'quiz-option-btn';
+          btn.textContent = opt.name;
+          btn.addEventListener('click', () => handleReviewQuizChoice(btn, opt));
+          reviewQuizOptionsGrid.appendChild(btn);
+        });
+
+        reviewQuizFooterAction.style.display = 'none';
+      }
+
+      function handleReviewQuizChoice(btn, chosenMenu) {
+        if (reviewQuizAnswered) return;
+
+        const targetMenu = reviewQuizCurrentTarget.menu;
+
+        if (chosenMenu.id === targetMenu.id) {
+          reviewQuizAnswered = true;
+          btn.classList.add('correct');
+
+          reviewQuizTotalScore += reviewQuizCurrentQuestionScore;
+          reviewQuizScoreText.textContent = `점수: ${reviewQuizTotalScore}점 (+${reviewQuizCurrentQuestionScore})`;
+          reviewQuizScoreText.classList.add('pop');
+
+          const photo = getRestaurantPhoto(targetMenu);
+          if (photo) {
+            reviewRevealedThumb.src = photo;
+            reviewRevealedThumb.style.display = 'block';
+            reviewRevealedFallback.style.display = 'none';
+          } else {
+            reviewRevealedThumb.style.display = 'none';
+            reviewRevealedFallback.textContent = CATEGORY_EMOJI[targetMenu.category] || '🍽️';
+            reviewRevealedFallback.style.display = 'flex';
+          }
+
+          reviewRevealedTitle.textContent = targetMenu.name;
+          reviewRevealedSub.textContent = `${CATEGORY_EMOJI[targetMenu.category] || '🍽️'} ${targetMenu.category || '기타'} ${targetMenu.address ? `· ${targetMenu.address}` : ''}`;
+          reviewRevealedCard.style.display = 'flex';
+
+          reviewQuizOptionsGrid.querySelectorAll('.quiz-option-btn').forEach(b => {
+            if (b !== btn) {
+              b.disabled = true;
+              b.style.pointerEvents = 'none';
+            }
+          });
+
+          reviewCatHintBtn.disabled = true;
+          reviewChosungHintBtn.disabled = true;
+
+          const isLast = reviewQuizCurrentIndex === reviewQuizTargetList.length - 1;
+          reviewQuizNextBtn.textContent = isLast ? '최종 결과 보기 🏆' : `다음 문제 (${reviewQuizCurrentIndex + 2}/${reviewQuizTargetList.length}) ➔`;
+          reviewQuizFooterAction.style.display = 'block';
+        } else {
+          btn.classList.add('wrong');
+          btn.disabled = true;
+          btn.style.pointerEvents = 'none';
+
+          reviewQuizCurrentQuestionScore = Math.max(20, reviewQuizCurrentQuestionScore - 20);
+        }
+      }
+
+      function applyReviewCatHint() {
+        if (reviewQuizAnswered || reviewCatHintUsed) return;
+        reviewCatHintUsed = true;
+        reviewCatHintBtn.disabled = true;
+
+        reviewQuizCurrentQuestionScore = Math.max(20, reviewQuizCurrentQuestionScore - 15);
+        const cat = reviewQuizCurrentTarget.menu.category || '기타';
+        reviewCatHintBubble.textContent = `💡 카테고리 힌트: ${CATEGORY_EMOJI[cat] || '🍽️'} ${cat}`;
+        reviewCatHintBubble.style.display = 'flex';
+      }
+
+      function applyReviewChosungHint() {
+        if (reviewQuizAnswered || reviewChosungHintUsed) return;
+        reviewChosungHintUsed = true;
+        reviewChosungHintBtn.disabled = true;
+
+        reviewQuizCurrentQuestionScore = Math.max(20, reviewQuizCurrentQuestionScore - 25);
+        const hintChar = extractFirstCharHint(reviewQuizCurrentTarget.menu.name);
+        reviewChosungHintBubble.textContent = `🔤 첫 글자 힌트: ${hintChar}`;
+        reviewChosungHintBubble.style.display = 'flex';
+      }
+
+      function handleReviewQuizNext() {
+        if (!reviewQuizAnswered) return;
+        reviewQuizCurrentIndex++;
+        renderReviewQuizQuestion();
+      }
+
+      function renderReviewQuizFinalResult() {
+        reviewQuizActiveArea.style.display = 'none';
+        reviewQuizEmptyArea.style.display = 'none';
+        reviewQuizResultArea.style.display = 'flex';
+        reviewQuizHeaderMeta.style.display = 'none';
+
+        const maxScore = reviewQuizTargetList.length * 100;
+        reviewQuizFinalScore.innerHTML = `${reviewQuizTotalScore} <span style="font-size:16px; font-weight:600; color:var(--ink-2);">/ ${maxScore}점</span>`;
+
+        let trophy = '🏆';
+        let tierTitle = '👑 사내 맛잘알 공인 1급';
+        let desc = '팀원들의 한 줄 리뷰만 보고도 척척 맞히는 진정한 사내 맛잘알!';
+
+        if (reviewQuizTotalScore >= 450) {
+          trophy = '🏆';
+          tierTitle = '👑 사내 맛잘알 공인 1급';
+          desc = '팀원들의 한 줄 리뷰만 보고도 척척 맞히는 진정한 사내 맛잘알!';
+        } else if (reviewQuizTotalScore >= 320) {
+          trophy = '💬';
+          tierTitle = '✨ 팀원 마음 독심술사';
+          desc = '동료들의 입맛과 리뷰 취향을 완벽하게 파악하고 계시네요!';
+        } else if (reviewQuizTotalScore >= 200) {
+          trophy = '😋';
+          tierTitle = '🌱 맛있는 관심 꿈나무';
+          desc = '팀원들의 맛집 추천에 귀 기울이는 훈훈한 동료예요.';
+        } else {
+          trophy = '🔍';
+          tierTitle = '📚 맛집 탐방이 필요해요!';
+          desc = '아직 동료들이 남긴 꿀정보를 다 못 읽어보셨군요! 리뷰 탭을 구경해보세요.';
+        }
+
+        reviewQuizResultTrophy.textContent = trophy;
+        reviewQuizResultTier.textContent = tierTitle;
+        reviewQuizResultDesc.textContent = desc;
+
+        reviewQuizSummaryList.innerHTML = reviewQuizTargetList.map(({ menu, review }) => {
+          const photo = getRestaurantPhoto(menu);
+          const emoji = CATEGORY_EMOJI[menu.category] || '🍽️';
+          const thumbHtml = photo
+            ? `<img src="${photo}" alt="${escapeHtml(menu.name)}" class="quiz-summary-thumb" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div class="quiz-summary-thumb quiz-thumb-fallback" style="display:none;">${emoji}</div>`
+            : `<div class="quiz-summary-thumb quiz-thumb-fallback">${emoji}</div>`;
+          return `
+            <div class="quiz-summary-item">
+              ${thumbHtml}
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                  <span class="quiz-summary-name">${escapeHtml(menu.name)}</span>
+                  <span class="quiz-summary-cat">${CATEGORY_EMOJI[menu.category] || '🍽️'} ${escapeHtml(menu.category || '기타')}</span>
+                </div>
+                <div style="font-size:11.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  “${escapeHtml(review.text)}”
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      reviewQuizShortcutBtn.addEventListener('click', openReviewQuiz);
+      closeReviewQuizBtn.addEventListener('click', () => reviewQuizDialog.close());
+      reviewQuizCloseResultBtn.addEventListener('click', () => reviewQuizDialog.close());
+      reviewQuizEmptyConfirmBtn.addEventListener('click', () => reviewQuizDialog.close());
+      reviewQuizRetryBtn.addEventListener('click', () => {
+        const validRestaurants = collectValidReviews();
+        if (validRestaurants.length < 4) {
+          reviewQuizActiveArea.style.display = 'none';
+          reviewQuizResultArea.style.display = 'none';
+          reviewQuizEmptyArea.style.display = 'block';
+          return;
+        }
+        startReviewQuizGame(validRestaurants);
+      });
+
+      reviewCatHintBtn.addEventListener('click', applyReviewCatHint);
+      reviewChosungHintBtn.addEventListener('click', applyReviewChosungHint);
+      reviewQuizNextBtn.addEventListener('click', handleReviewQuizNext);
+
+      reviewQuizDialog.addEventListener('close', () => {
+        updateBodyScrollLock();
+        reviewQuizHeaderMeta.style.display = 'flex';
+        reviewQuizActiveArea.style.display = 'none';
+        reviewQuizResultArea.style.display = 'none';
+        reviewQuizEmptyArea.style.display = 'none';
+      });
+
+      reviewQuizDialog.addEventListener('click', (event) => {
+        if (event.target === reviewQuizDialog) {
+          reviewQuizDialog.close();
         }
       });
 
